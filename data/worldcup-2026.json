@@ -1,0 +1,1803 @@
+{
+ "meta": {
+  "seed": 42,
+  "iterations": 10000,
+  "avgGoalsPerMatch": 2.69,
+  "generatedOn": "2026-06-07",
+  "matchesPerIteration": 104,
+  "baseGoals": 1.22,
+  "alpha": 1.15
+ },
+ "model": {
+  "strengthFormula": "S = 0.55·norm(fifaPoints) + 0.20·(최근 10경기 승점률) + 0.25·norm(log(시장가치 MEUR)) − 부상 페널티 + 커버리지 보정상수(상세 데이터 8개국에만 적용)",
+  "weights": {
+   "rank": {
+    "value": 0.55,
+    "rationale": "FIFA 포인트는 수년치 공식 경기 결과를 누적 반영하는 가장 안정적인 단일 지표라 베이스로 최대 가중"
+   },
+   "form": {
+    "value": 0.2,
+    "rationale": "최근 10경기는 현재 컨디션을 반영하지만 표본이 작고 친선전이 섞여 노이즈가 커서 보조 가중"
+   },
+   "value": {
+    "value": 0.25,
+    "rationale": "스쿼드 시장가치(로그 스케일)는 랭킹이 못 잡는 선수단 체급 차이의 대리 지표 — 랭킹 포인트가 거의 같은 1~3위(프랑스·스페인·아르헨티나)를 변별하는 핵심 항목"
+   },
+   "injuryPenalty": {
+    "value": 0.02,
+    "rationale": "확인된 주전 부상 보도가 있는 잉글랜드(Livramento·Colwill 제외, James·Spence 복귀 직후, Stones 피트니스 우려)에만 0.02 감점 — 타 팀은 부상 데이터 미확보라 0"
+   },
+   "coverageBiasCorrection": {
+    "value": 0.1176,
+    "rationale": "상세 데이터 8개국의 평균 점수를 같은 8개국의 랭킹 단독 점수 평균과 일치시키는 상수 — 데이터가 있다는 이유로 코호트 전체가 랭킹 단독 40개국 대비 불리해지는 비대칭 제거 (코호트 내부 서열은 폼·시장가치·부상으로 결정)"
+   }
+  },
+  "matchModel": "lambda_A = 1.22 × exp(1.15 × (S_A − S_B)) 양 팀 독립 Poisson(Knuth 샘플링), 동률 시 연장(λ×1/3 Poisson) → 승부차기(전력차 반영 0.5±0.15)",
+  "limitations": [
+   "폼·시장가치·부상은 FIFA 상위 8개국만 조사됨 — 나머지 40개국은 FIFA 랭킹 100%(dataCoverage: ranking-only). 9~16위권(독일·벨기에·크로아티아 등)의 폼·시장가치는 미반영이라 이들 점수는 상대적으로 보수적",
+   "스페인·잉글랜드 시장가치는 EUR 확정치 미확보(USD 2차 보도만) — 상세 코호트 평균 norm 값(0.5212)으로 대체(imputed)",
+   "부상 데이터는 잉글랜드만 확보 — 타 팀 페널티 0은 '부상 없음'이 아니라 '데이터 없음'",
+   "팀 컨덕트 스코어(옐로·레드카드)는 데이터가 없어 조 순위·3위 비교 모두에서 모델링 불가 — 승점→골득실→다득점→FIFA 포인트→난수 추첨 순으로 대체. 조 내 동률 시 헤드투헤드 규정도 미적용",
+   "3위 8팀의 32강 슬롯 배정은 FIFA 규정 Annex C의 495가지 조합표 대신 '슬롯별 허용 조 풀 안 이분 매칭' 근사 — 매칭 실패 폴백 발생 0/10000회",
+   "16강 이후 대진은 조사 데이터에 없어 32강 매치(73~88) 승자를 번호 순서대로 페어링(W73 vs W74, …)하는 근사 — 실제 FIFA 브래킷과 다를 수 있음",
+   "미반영 변수: 감독 전술, 선수 컨디션·피로, 날씨·기온, 이동 거리, 홈 어드밴티지(개최 3국 미국·캐나다·멕시코 보정 없음), 승부차기 전문 능력",
+   "프랑스 최근 10경기 중 코트디부아르전은 소스 상충(ESPN 1-2 패 vs 타 소스 0-0 무) — ESPN 표기(패) 채택",
+   "avgGoalsPerMatch는 정규 90분 득점 기준(연장 득점 제외), 3·4위전 포함 104경기 전체 평균",
+   "결과는 단정 예측이 아니라 시드 고정 몬테카를로의 확률 분포 — 모델 가정이 바뀌면 수치도 바뀜"
+  ]
+ },
+ "teams": [
+  {
+   "name": "멕시코",
+   "nameEn": "Mexico",
+   "group": "A",
+   "fifaRank": 15,
+   "fifaPoints": 1681.03,
+   "strengthScore": 0.6705,
+   "components": {
+    "ranking": 0.6705,
+    "form": null,
+    "marketValue": null,
+    "injuryPenalty": 0.0
+   },
+   "dataCoverage": "ranking-only"
+  },
+  {
+   "name": "남아프리카공화국",
+   "nameEn": "South Africa",
+   "group": "A",
+   "fifaRank": 60,
+   "fifaPoints": 1429.73,
+   "strengthScore": 0.2487,
+   "components": {
+    "ranking": 0.2487,
+    "form": null,
+    "marketValue": null,
+    "injuryPenalty": 0.0
+   },
+   "dataCoverage": "ranking-only"
+  },
+  {
+   "name": "대한민국",
+   "nameEn": "South Korea",
+   "group": "A",
+   "fifaRank": 25,
+   "fifaPoints": 1588.66,
+   "strengthScore": 0.5155,
+   "components": {
+    "ranking": 0.5155,
+    "form": null,
+    "marketValue": null,
+    "injuryPenalty": 0.0
+   },
+   "dataCoverage": "ranking-only"
+  },
+  {
+   "name": "체코",
+   "nameEn": "Czechia",
+   "group": "A",
+   "fifaRank": 41,
+   "fifaPoints": 1501.38,
+   "strengthScore": 0.369,
+   "components": {
+    "ranking": 0.369,
+    "form": null,
+    "marketValue": null,
+    "injuryPenalty": 0.0
+   },
+   "dataCoverage": "ranking-only"
+  },
+  {
+   "name": "캐나다",
+   "nameEn": "Canada",
+   "group": "B",
+   "fifaRank": 30,
+   "fifaPoints": 1556.48,
+   "strengthScore": 0.4615,
+   "components": {
+    "ranking": 0.4615,
+    "form": null,
+    "marketValue": null,
+    "injuryPenalty": 0.0
+   },
+   "dataCoverage": "ranking-only"
+  },
+  {
+   "name": "스위스",
+   "nameEn": "Switzerland",
+   "group": "B",
+   "fifaRank": 19,
+   "fifaPoints": 1649.4,
+   "strengthScore": 0.6174,
+   "components": {
+    "ranking": 0.6174,
+    "form": null,
+    "marketValue": null,
+    "injuryPenalty": 0.0
+   },
+   "dataCoverage": "ranking-only"
+  },
+  {
+   "name": "카타르",
+   "nameEn": "Qatar",
+   "group": "B",
+   "fifaRank": 55,
+   "fifaPoints": 1454.96,
+   "strengthScore": 0.291,
+   "components": {
+    "ranking": 0.291,
+    "form": null,
+    "marketValue": null,
+    "injuryPenalty": 0.0
+   },
+   "dataCoverage": "ranking-only"
+  },
+  {
+   "name": "보스니아 헤르체고비나",
+   "nameEn": "Bosnia and Herzegovina",
+   "group": "B",
+   "fifaRank": 65,
+   "fifaPoints": 1385.84,
+   "strengthScore": 0.175,
+   "components": {
+    "ranking": 0.175,
+    "form": null,
+    "marketValue": null,
+    "injuryPenalty": 0.0
+   },
+   "dataCoverage": "ranking-only"
+  },
+  {
+   "name": "브라질",
+   "nameEn": "Brazil",
+   "group": "C",
+   "fifaRank": 6,
+   "fifaPoints": 1761.16,
+   "strengthScore": 0.8246,
+   "components": {
+    "ranking": 0.805,
+    "form": 0.6333,
+    "marketValue": 0.5504,
+    "injuryPenalty": 0.0
+   },
+   "dataCoverage": "full",
+   "formRecord": "6승 1무 3패",
+   "marketValueMEUR": 912.2
+  },
+  {
+   "name": "모로코",
+   "nameEn": "Morocco",
+   "group": "C",
+   "fifaRank": 8,
+   "fifaPoints": 1755.87,
+   "strengthScore": 0.7288,
+   "components": {
+    "ranking": 0.7961,
+    "form": 0.8667,
+    "marketValue": 0.0,
+    "injuryPenalty": 0.0
+   },
+   "dataCoverage": "full",
+   "formRecord": "8승 2무",
+   "marketValueMEUR": 488.2
+  },
+  {
+   "name": "스코틀랜드",
+   "nameEn": "Scotland",
+   "group": "C",
+   "fifaRank": 43,
+   "fifaPoints": 1498.35,
+   "strengthScore": 0.3639,
+   "components": {
+    "ranking": 0.3639,
+    "form": null,
+    "marketValue": null,
+    "injuryPenalty": 0.0
+   },
+   "dataCoverage": "ranking-only"
+  },
+  {
+   "name": "아이티",
+   "nameEn": "Haiti",
+   "group": "C",
+   "fifaRank": 83,
+   "fifaPoints": 1291.71,
+   "strengthScore": 0.017,
+   "components": {
+    "ranking": 0.017,
+    "form": null,
+    "marketValue": null,
+    "injuryPenalty": 0.0
+   },
+   "dataCoverage": "ranking-only"
+  },
+  {
+   "name": "미국",
+   "nameEn": "United States",
+   "group": "D",
+   "fifaRank": 16,
+   "fifaPoints": 1673.13,
+   "strengthScore": 0.6573,
+   "components": {
+    "ranking": 0.6573,
+    "form": null,
+    "marketValue": null,
+    "injuryPenalty": 0.0
+   },
+   "dataCoverage": "ranking-only"
+  },
+  {
+   "name": "파라과이",
+   "nameEn": "Paraguay",
+   "group": "D",
+   "fifaRank": 40,
+   "fifaPoints": 1503.5,
+   "strengthScore": 0.3725,
+   "components": {
+    "ranking": 0.3725,
+    "form": null,
+    "marketValue": null,
+    "injuryPenalty": 0.0
+   },
+   "dataCoverage": "ranking-only"
+  },
+  {
+   "name": "호주",
+   "nameEn": "Australia",
+   "group": "D",
+   "fifaRank": 27,
+   "fifaPoints": 1580.67,
+   "strengthScore": 0.5021,
+   "components": {
+    "ranking": 0.5021,
+    "form": null,
+    "marketValue": null,
+    "injuryPenalty": 0.0
+   },
+   "dataCoverage": "ranking-only"
+  },
+  {
+   "name": "튀르키예",
+   "nameEn": "Türkiye",
+   "group": "D",
+   "fifaRank": 22,
+   "fifaPoints": 1599.04,
+   "strengthScore": 0.5329,
+   "components": {
+    "ranking": 0.5329,
+    "form": null,
+    "marketValue": null,
+    "injuryPenalty": 0.0
+   },
+   "dataCoverage": "ranking-only"
+  },
+  {
+   "name": "독일",
+   "nameEn": "Germany",
+   "group": "E",
+   "fifaRank": 10,
+   "fifaPoints": 1730.37,
+   "strengthScore": 0.7533,
+   "components": {
+    "ranking": 0.7533,
+    "form": null,
+    "marketValue": null,
+    "injuryPenalty": 0.0
+   },
+   "dataCoverage": "ranking-only"
+  },
+  {
+   "name": "에콰도르",
+   "nameEn": "Ecuador",
+   "group": "E",
+   "fifaRank": 23,
+   "fifaPoints": 1594.78,
+   "strengthScore": 0.5257,
+   "components": {
+    "ranking": 0.5257,
+    "form": null,
+    "marketValue": null,
+    "injuryPenalty": 0.0
+   },
+   "dataCoverage": "ranking-only"
+  },
+  {
+   "name": "코트디부아르",
+   "nameEn": "Ivory Coast",
+   "group": "E",
+   "fifaRank": 34,
+   "fifaPoints": 1532.98,
+   "strengthScore": 0.422,
+   "components": {
+    "ranking": 0.422,
+    "form": null,
+    "marketValue": null,
+    "injuryPenalty": 0.0
+   },
+   "dataCoverage": "ranking-only"
+  },
+  {
+   "name": "퀴라소",
+   "nameEn": "Curaçao",
+   "group": "E",
+   "fifaRank": 82,
+   "fifaPoints": 1294.65,
+   "strengthScore": 0.022,
+   "components": {
+    "ranking": 0.022,
+    "form": null,
+    "marketValue": null,
+    "injuryPenalty": 0.0
+   },
+   "dataCoverage": "ranking-only"
+  },
+  {
+   "name": "네덜란드",
+   "nameEn": "Netherlands",
+   "group": "F",
+   "fifaRank": 7,
+   "fifaPoints": 1757.87,
+   "strengthScore": 0.836,
+   "components": {
+    "ranking": 0.7995,
+    "form": 0.8,
+    "marketValue": 0.4749,
+    "injuryPenalty": 0.0
+   },
+   "dataCoverage": "full",
+   "formRecord": "7승 3무",
+   "marketValueMEUR": 837.2
+  },
+  {
+   "name": "일본",
+   "nameEn": "Japan",
+   "group": "F",
+   "fifaRank": 18,
+   "fifaPoints": 1660.43,
+   "strengthScore": 0.6359,
+   "components": {
+    "ranking": 0.6359,
+    "form": null,
+    "marketValue": null,
+    "injuryPenalty": 0.0
+   },
+   "dataCoverage": "ranking-only"
+  },
+  {
+   "name": "스웨덴",
+   "nameEn": "Sweden",
+   "group": "F",
+   "fifaRank": 38,
+   "fifaPoints": 1514.77,
+   "strengthScore": 0.3914,
+   "components": {
+    "ranking": 0.3914,
+    "form": null,
+    "marketValue": null,
+    "injuryPenalty": 0.0
+   },
+   "dataCoverage": "ranking-only"
+  },
+  {
+   "name": "튀니지",
+   "nameEn": "Tunisia",
+   "group": "F",
+   "fifaRank": 44,
+   "fifaPoints": 1483.05,
+   "strengthScore": 0.3382,
+   "components": {
+    "ranking": 0.3382,
+    "form": null,
+    "marketValue": null,
+    "injuryPenalty": 0.0
+   },
+   "dataCoverage": "ranking-only"
+  },
+  {
+   "name": "벨기에",
+   "nameEn": "Belgium",
+   "group": "G",
+   "fifaRank": 9,
+   "fifaPoints": 1734.71,
+   "strengthScore": 0.7606,
+   "components": {
+    "ranking": 0.7606,
+    "form": null,
+    "marketValue": null,
+    "injuryPenalty": 0.0
+   },
+   "dataCoverage": "ranking-only"
+  },
+  {
+   "name": "이란",
+   "nameEn": "Iran",
+   "group": "G",
+   "fifaRank": 21,
+   "fifaPoints": 1615.3,
+   "strengthScore": 0.5602,
+   "components": {
+    "ranking": 0.5602,
+    "form": null,
+    "marketValue": null,
+    "injuryPenalty": 0.0
+   },
+   "dataCoverage": "ranking-only"
+  },
+  {
+   "name": "이집트",
+   "nameEn": "Egypt",
+   "group": "G",
+   "fifaRank": 29,
+   "fifaPoints": 1563.24,
+   "strengthScore": 0.4728,
+   "components": {
+    "ranking": 0.4728,
+    "form": null,
+    "marketValue": null,
+    "injuryPenalty": 0.0
+   },
+   "dataCoverage": "ranking-only"
+  },
+  {
+   "name": "뉴질랜드",
+   "nameEn": "New Zealand",
+   "group": "G",
+   "fifaRank": 85,
+   "fifaPoints": 1281.57,
+   "strengthScore": 0.0,
+   "components": {
+    "ranking": 0.0,
+    "form": null,
+    "marketValue": null,
+    "injuryPenalty": 0.0
+   },
+   "dataCoverage": "ranking-only"
+  },
+  {
+   "name": "스페인",
+   "nameEn": "Spain",
+   "group": "H",
+   "fifaRank": 2,
+   "fifaPoints": 1876.4,
+   "strengthScore": 0.957,
+   "components": {
+    "ranking": 0.9985,
+    "form": 0.8,
+    "marketValue": 0.5212,
+    "injuryPenalty": 0.0
+   },
+   "dataCoverage": "detail-value-imputed",
+   "formRecord": "7승 3무",
+   "marketValueMEUR": null
+  },
+  {
+   "name": "우루과이",
+   "nameEn": "Uruguay",
+   "group": "H",
+   "fifaRank": 17,
+   "fifaPoints": 1673.07,
+   "strengthScore": 0.6572,
+   "components": {
+    "ranking": 0.6572,
+    "form": null,
+    "marketValue": null,
+    "injuryPenalty": 0.0
+   },
+   "dataCoverage": "ranking-only"
+  },
+  {
+   "name": "사우디아라비아",
+   "nameEn": "Saudi Arabia",
+   "group": "H",
+   "fifaRank": 61,
+   "fifaPoints": 1421.43,
+   "strengthScore": 0.2348,
+   "components": {
+    "ranking": 0.2348,
+    "form": null,
+    "marketValue": null,
+    "injuryPenalty": 0.0
+   },
+   "dataCoverage": "ranking-only"
+  },
+  {
+   "name": "카보베르데",
+   "nameEn": "Cape Verde",
+   "group": "H",
+   "fifaRank": 69,
+   "fifaPoints": 1366.13,
+   "strengthScore": 0.1419,
+   "components": {
+    "ranking": 0.1419,
+    "form": null,
+    "marketValue": null,
+    "injuryPenalty": 0.0
+   },
+   "dataCoverage": "ranking-only"
+  },
+  {
+   "name": "프랑스",
+   "nameEn": "France",
+   "group": "I",
+   "fifaRank": 1,
+   "fifaPoints": 1877.32,
+   "strengthScore": 1.0843,
+   "components": {
+    "ranking": 1.0,
+    "form": 0.8333,
+    "marketValue": 1.0,
+    "injuryPenalty": 0.0
+   },
+   "dataCoverage": "full",
+   "formRecord": "8승 1무 1패",
+   "marketValueMEUR": 1520.0
+  },
+  {
+   "name": "세네갈",
+   "nameEn": "Senegal",
+   "group": "I",
+   "fifaRank": 14,
+   "fifaPoints": 1688.99,
+   "strengthScore": 0.6839,
+   "components": {
+    "ranking": 0.6839,
+    "form": null,
+    "marketValue": null,
+    "injuryPenalty": 0.0
+   },
+   "dataCoverage": "ranking-only"
+  },
+  {
+   "name": "노르웨이",
+   "nameEn": "Norway",
+   "group": "I",
+   "fifaRank": 31,
+   "fifaPoints": 1550.94,
+   "strengthScore": 0.4522,
+   "components": {
+    "ranking": 0.4522,
+    "form": null,
+    "marketValue": null,
+    "injuryPenalty": 0.0
+   },
+   "dataCoverage": "ranking-only"
+  },
+  {
+   "name": "이라크",
+   "nameEn": "Iraq",
+   "group": "I",
+   "fifaRank": 57,
+   "fifaPoints": 1447.14,
+   "strengthScore": 0.2779,
+   "components": {
+    "ranking": 0.2779,
+    "form": null,
+    "marketValue": null,
+    "injuryPenalty": 0.0
+   },
+   "dataCoverage": "ranking-only"
+  },
+  {
+   "name": "아르헨티나",
+   "nameEn": "Argentina",
+   "group": "J",
+   "fifaRank": 3,
+   "fifaPoints": 1874.81,
+   "strengthScore": 0.9453,
+   "components": {
+    "ranking": 0.9958,
+    "form": 0.8333,
+    "marketValue": 0.4534,
+    "injuryPenalty": 0.0
+   },
+   "dataCoverage": "full",
+   "formRecord": "8승 1무 1패",
+   "marketValueMEUR": 817.0
+  },
+  {
+   "name": "오스트리아",
+   "nameEn": "Austria",
+   "group": "J",
+   "fifaRank": 24,
+   "fifaPoints": 1593.45,
+   "strengthScore": 0.5235,
+   "components": {
+    "ranking": 0.5235,
+    "form": null,
+    "marketValue": null,
+    "injuryPenalty": 0.0
+   },
+   "dataCoverage": "ranking-only"
+  },
+  {
+   "name": "알제리",
+   "nameEn": "Algeria",
+   "group": "J",
+   "fifaRank": 28,
+   "fifaPoints": 1564.26,
+   "strengthScore": 0.4745,
+   "components": {
+    "ranking": 0.4745,
+    "form": null,
+    "marketValue": null,
+    "injuryPenalty": 0.0
+   },
+   "dataCoverage": "ranking-only"
+  },
+  {
+   "name": "요르단",
+   "nameEn": "Jordan",
+   "group": "J",
+   "fifaRank": 63,
+   "fifaPoints": 1391.45,
+   "strengthScore": 0.1844,
+   "components": {
+    "ranking": 0.1844,
+    "form": null,
+    "marketValue": null,
+    "injuryPenalty": 0.0
+   },
+   "dataCoverage": "ranking-only"
+  },
+  {
+   "name": "포르투갈",
+   "nameEn": "Portugal",
+   "group": "K",
+   "fifaRank": 5,
+   "fifaPoints": 1763.83,
+   "strengthScore": 0.865,
+   "components": {
+    "ranking": 0.8095,
+    "form": 0.7,
+    "marketValue": 0.6488,
+    "injuryPenalty": 0.0
+   },
+   "dataCoverage": "full",
+   "formRecord": "6승 3무 1패",
+   "marketValueMEUR": 1020.0
+  },
+  {
+   "name": "콜롬비아",
+   "nameEn": "Colombia",
+   "group": "K",
+   "fifaRank": 13,
+   "fifaPoints": 1693.09,
+   "strengthScore": 0.6908,
+   "components": {
+    "ranking": 0.6908,
+    "form": null,
+    "marketValue": null,
+    "injuryPenalty": 0.0
+   },
+   "dataCoverage": "ranking-only"
+  },
+  {
+   "name": "우즈베키스탄",
+   "nameEn": "Uzbekistan",
+   "group": "K",
+   "fifaRank": 50,
+   "fifaPoints": 1465.34,
+   "strengthScore": 0.3085,
+   "components": {
+    "ranking": 0.3085,
+    "form": null,
+    "marketValue": null,
+    "injuryPenalty": 0.0
+   },
+   "dataCoverage": "ranking-only"
+  },
+  {
+   "name": "DR콩고",
+   "nameEn": "DR Congo",
+   "group": "K",
+   "fifaRank": 46,
+   "fifaPoints": 1478.35,
+   "strengthScore": 0.3303,
+   "components": {
+    "ranking": 0.3303,
+    "form": null,
+    "marketValue": null,
+    "injuryPenalty": 0.0
+   },
+   "dataCoverage": "ranking-only"
+  },
+  {
+   "name": "잉글랜드",
+   "nameEn": "England",
+   "group": "L",
+   "fifaRank": 4,
+   "fifaPoints": 1825.97,
+   "strengthScore": 0.8772,
+   "components": {
+    "ranking": 0.9138,
+    "form": 0.7333,
+    "marketValue": 0.5212,
+    "injuryPenalty": 0.02
+   },
+   "dataCoverage": "detail-value-imputed",
+   "formRecord": "7승 1무 2패",
+   "marketValueMEUR": null
+  },
+  {
+   "name": "크로아티아",
+   "nameEn": "Croatia",
+   "group": "L",
+   "fifaRank": 11,
+   "fifaPoints": 1717.07,
+   "strengthScore": 0.731,
+   "components": {
+    "ranking": 0.731,
+    "form": null,
+    "marketValue": null,
+    "injuryPenalty": 0.0
+   },
+   "dataCoverage": "ranking-only"
+  },
+  {
+   "name": "가나",
+   "nameEn": "Ghana",
+   "group": "L",
+   "fifaRank": 74,
+   "fifaPoints": 1346.31,
+   "strengthScore": 0.1087,
+   "components": {
+    "ranking": 0.1087,
+    "form": null,
+    "marketValue": null,
+    "injuryPenalty": 0.0
+   },
+   "dataCoverage": "ranking-only"
+  },
+  {
+   "name": "파나마",
+   "nameEn": "Panama",
+   "group": "L",
+   "fifaRank": 33,
+   "fifaPoints": 1540.64,
+   "strengthScore": 0.4349,
+   "components": {
+    "ranking": 0.4349,
+    "form": null,
+    "marketValue": null,
+    "injuryPenalty": 0.0
+   },
+   "dataCoverage": "ranking-only"
+  }
+ ],
+ "championProbs": [
+  {
+   "team": "프랑스",
+   "nameEn": "France",
+   "prob": 0.2861
+  },
+  {
+   "team": "스페인",
+   "nameEn": "Spain",
+   "prob": 0.13
+  },
+  {
+   "team": "아르헨티나",
+   "nameEn": "Argentina",
+   "prob": 0.1206
+  },
+  {
+   "team": "잉글랜드",
+   "nameEn": "England",
+   "prob": 0.0735
+  },
+  {
+   "team": "포르투갈",
+   "nameEn": "Portugal",
+   "prob": 0.0702
+  },
+  {
+   "team": "네덜란드",
+   "nameEn": "Netherlands",
+   "prob": 0.0489
+  },
+  {
+   "team": "브라질",
+   "nameEn": "Brazil",
+   "prob": 0.0483
+  },
+  {
+   "team": "벨기에",
+   "nameEn": "Belgium",
+   "prob": 0.0372
+  },
+  {
+   "team": "독일",
+   "nameEn": "Germany",
+   "prob": 0.027
+  },
+  {
+   "team": "크로아티아",
+   "nameEn": "Croatia",
+   "prob": 0.0243
+  },
+  {
+   "team": "모로코",
+   "nameEn": "Morocco",
+   "prob": 0.0197
+  },
+  {
+   "team": "콜롬비아",
+   "nameEn": "Colombia",
+   "prob": 0.0158
+  },
+  {
+   "team": "멕시코",
+   "nameEn": "Mexico",
+   "prob": 0.0149
+  },
+  {
+   "team": "미국",
+   "nameEn": "United States",
+   "prob": 0.0144
+  },
+  {
+   "team": "우루과이",
+   "nameEn": "Uruguay",
+   "prob": 0.0123
+  },
+  {
+   "team": "세네갈",
+   "nameEn": "Senegal",
+   "prob": 0.0111
+  },
+  {
+   "team": "스위스",
+   "nameEn": "Switzerland",
+   "prob": 0.0104
+  },
+  {
+   "team": "일본",
+   "nameEn": "Japan",
+   "prob": 0.0083
+  },
+  {
+   "team": "이란",
+   "nameEn": "Iran",
+   "prob": 0.0055
+  },
+  {
+   "team": "튀르키예",
+   "nameEn": "Türkiye",
+   "prob": 0.0032
+  },
+  {
+   "team": "대한민국",
+   "nameEn": "South Korea",
+   "prob": 0.0027
+  },
+  {
+   "team": "에콰도르",
+   "nameEn": "Ecuador",
+   "prob": 0.0026
+  },
+  {
+   "team": "오스트리아",
+   "nameEn": "Austria",
+   "prob": 0.0024
+  },
+  {
+   "team": "이집트",
+   "nameEn": "Egypt",
+   "prob": 0.0019
+  },
+  {
+   "team": "캐나다",
+   "nameEn": "Canada",
+   "prob": 0.0019
+  },
+  {
+   "team": "호주",
+   "nameEn": "Australia",
+   "prob": 0.0015
+  },
+  {
+   "team": "파나마",
+   "nameEn": "Panama",
+   "prob": 0.0014
+  },
+  {
+   "team": "알제리",
+   "nameEn": "Algeria",
+   "prob": 0.0007
+  },
+  {
+   "team": "노르웨이",
+   "nameEn": "Norway",
+   "prob": 0.0007
+  },
+  {
+   "team": "스웨덴",
+   "nameEn": "Sweden",
+   "prob": 0.0006
+  },
+  {
+   "team": "코트디부아르",
+   "nameEn": "Ivory Coast",
+   "prob": 0.0005
+  },
+  {
+   "team": "체코",
+   "nameEn": "Czechia",
+   "prob": 0.0004
+  },
+  {
+   "team": "스코틀랜드",
+   "nameEn": "Scotland",
+   "prob": 0.0003
+  },
+  {
+   "team": "파라과이",
+   "nameEn": "Paraguay",
+   "prob": 0.0002
+  },
+  {
+   "team": "DR콩고",
+   "nameEn": "DR Congo",
+   "prob": 0.0002
+  },
+  {
+   "team": "튀니지",
+   "nameEn": "Tunisia",
+   "prob": 0.0001
+  },
+  {
+   "team": "남아프리카공화국",
+   "nameEn": "South Africa",
+   "prob": 0.0001
+  },
+  {
+   "team": "보스니아 헤르체고비나",
+   "nameEn": "Bosnia and Herzegovina",
+   "prob": 0.0001
+  },
+  {
+   "team": "우즈베키스탄",
+   "nameEn": "Uzbekistan",
+   "prob": 0.0
+  },
+  {
+   "team": "카타르",
+   "nameEn": "Qatar",
+   "prob": 0.0
+  },
+  {
+   "team": "이라크",
+   "nameEn": "Iraq",
+   "prob": 0.0
+  },
+  {
+   "team": "사우디아라비아",
+   "nameEn": "Saudi Arabia",
+   "prob": 0.0
+  },
+  {
+   "team": "요르단",
+   "nameEn": "Jordan",
+   "prob": 0.0
+  },
+  {
+   "team": "카보베르데",
+   "nameEn": "Cape Verde",
+   "prob": 0.0
+  },
+  {
+   "team": "가나",
+   "nameEn": "Ghana",
+   "prob": 0.0
+  },
+  {
+   "team": "퀴라소",
+   "nameEn": "Curaçao",
+   "prob": 0.0
+  },
+  {
+   "team": "아이티",
+   "nameEn": "Haiti",
+   "prob": 0.0
+  },
+  {
+   "team": "뉴질랜드",
+   "nameEn": "New Zealand",
+   "prob": 0.0
+  }
+ ],
+ "roundProbs": {
+  "멕시코": {
+   "r32": 0.9107,
+   "r16": 0.5907,
+   "qf": 0.2953,
+   "sf": 0.1015,
+   "final": 0.0416,
+   "champion": 0.0149
+  },
+  "남아프리카공화국": {
+   "r32": 0.4057,
+   "r16": 0.1165,
+   "qf": 0.0267,
+   "sf": 0.0033,
+   "final": 0.0004,
+   "champion": 0.0001
+  },
+  "대한민국": {
+   "r32": 0.797,
+   "r16": 0.4095,
+   "qf": 0.1742,
+   "sf": 0.0483,
+   "final": 0.0128,
+   "champion": 0.0027
+  },
+  "체코": {
+   "r32": 0.6065,
+   "r16": 0.2366,
+   "qf": 0.0774,
+   "sf": 0.0139,
+   "final": 0.0021,
+   "champion": 0.0004
+  },
+  "캐나다": {
+   "r32": 0.8002,
+   "r16": 0.3654,
+   "qf": 0.1262,
+   "sf": 0.036,
+   "final": 0.0079,
+   "champion": 0.0019
+  },
+  "스위스": {
+   "r32": 0.9253,
+   "r16": 0.5459,
+   "qf": 0.2263,
+   "sf": 0.0927,
+   "final": 0.0324,
+   "champion": 0.0104
+  },
+  "카타르": {
+   "r32": 0.5806,
+   "r16": 0.1903,
+   "qf": 0.0459,
+   "sf": 0.0087,
+   "final": 0.0015,
+   "champion": 0.0
+  },
+  "보스니아 헤르체고비나": {
+   "r32": 0.3959,
+   "r16": 0.0969,
+   "qf": 0.0185,
+   "sf": 0.0024,
+   "final": 0.0002,
+   "champion": 0.0001
+  },
+  "브라질": {
+   "r32": 0.9778,
+   "r16": 0.616,
+   "qf": 0.3701,
+   "sf": 0.2434,
+   "final": 0.1018,
+   "champion": 0.0483
+  },
+  "모로코": {
+   "r32": 0.9521,
+   "r16": 0.4938,
+   "qf": 0.2282,
+   "sf": 0.1304,
+   "final": 0.0496,
+   "champion": 0.0197
+  },
+  "스코틀랜드": {
+   "r32": 0.6063,
+   "r16": 0.1391,
+   "qf": 0.0378,
+   "sf": 0.0089,
+   "final": 0.0015,
+   "champion": 0.0003
+  },
+  "아이티": {
+   "r32": 0.1192,
+   "r16": 0.0094,
+   "qf": 0.0011,
+   "sf": 0.0001,
+   "final": 0.0,
+   "champion": 0.0
+  },
+  "미국": {
+   "r32": 0.8551,
+   "r16": 0.5115,
+   "qf": 0.269,
+   "sf": 0.1069,
+   "final": 0.0433,
+   "champion": 0.0144
+  },
+  "파라과이": {
+   "r32": 0.4797,
+   "r16": 0.1643,
+   "qf": 0.0478,
+   "sf": 0.0091,
+   "final": 0.0013,
+   "champion": 0.0002
+  },
+  "호주": {
+   "r32": 0.6914,
+   "r16": 0.3129,
+   "qf": 0.1241,
+   "sf": 0.036,
+   "final": 0.0092,
+   "champion": 0.0015
+  },
+  "튀르키예": {
+   "r32": 0.7178,
+   "r16": 0.3359,
+   "qf": 0.1396,
+   "sf": 0.0434,
+   "final": 0.0124,
+   "champion": 0.0032
+  },
+  "독일": {
+   "r32": 0.9703,
+   "r16": 0.6406,
+   "qf": 0.3713,
+   "sf": 0.1759,
+   "final": 0.0707,
+   "champion": 0.027
+  },
+  "에콰도르": {
+   "r32": 0.8521,
+   "r16": 0.3828,
+   "qf": 0.1306,
+   "sf": 0.0403,
+   "final": 0.0107,
+   "champion": 0.0026
+  },
+  "코트디부아르": {
+   "r32": 0.7417,
+   "r16": 0.2724,
+   "qf": 0.0732,
+   "sf": 0.0164,
+   "final": 0.0033,
+   "champion": 0.0005
+  },
+  "퀴라소": {
+   "r32": 0.1528,
+   "r16": 0.0204,
+   "qf": 0.0021,
+   "sf": 0.0003,
+   "final": 0.0,
+   "champion": 0.0
+  },
+  "네덜란드": {
+   "r32": 0.9502,
+   "r16": 0.5737,
+   "qf": 0.3409,
+   "sf": 0.2292,
+   "final": 0.1002,
+   "champion": 0.0489
+  },
+  "일본": {
+   "r32": 0.8271,
+   "r16": 0.3629,
+   "qf": 0.1503,
+   "sf": 0.072,
+   "final": 0.023,
+   "champion": 0.0083
+  },
+  "스웨덴": {
+   "r32": 0.495,
+   "r16": 0.1432,
+   "qf": 0.0348,
+   "sf": 0.0088,
+   "final": 0.0016,
+   "champion": 0.0006
+  },
+  "튀니지": {
+   "r32": 0.3993,
+   "r16": 0.098,
+   "qf": 0.0214,
+   "sf": 0.0046,
+   "final": 0.0005,
+   "champion": 0.0001
+  },
+  "벨기에": {
+   "r32": 0.9698,
+   "r16": 0.6894,
+   "qf": 0.4188,
+   "sf": 0.1936,
+   "final": 0.0913,
+   "champion": 0.0372
+  },
+  "이란": {
+   "r32": 0.8696,
+   "r16": 0.4731,
+   "qf": 0.1921,
+   "sf": 0.0641,
+   "final": 0.0209,
+   "champion": 0.0055
+  },
+  "이집트": {
+   "r32": 0.784,
+   "r16": 0.3661,
+   "qf": 0.1169,
+   "sf": 0.0336,
+   "final": 0.0092,
+   "champion": 0.0019
+  },
+  "뉴질랜드": {
+   "r32": 0.1213,
+   "r16": 0.0179,
+   "qf": 0.0015,
+   "sf": 0.0,
+   "final": 0.0,
+   "champion": 0.0
+  },
+  "스페인": {
+   "r32": 0.9916,
+   "r16": 0.7265,
+   "qf": 0.5045,
+   "sf": 0.3676,
+   "final": 0.2295,
+   "champion": 0.13
+  },
+  "우루과이": {
+   "r32": 0.9107,
+   "r16": 0.3754,
+   "qf": 0.2025,
+   "sf": 0.0992,
+   "final": 0.0364,
+   "champion": 0.0123
+  },
+  "사우디아라비아": {
+   "r32": 0.3787,
+   "r16": 0.0566,
+   "qf": 0.0127,
+   "sf": 0.0017,
+   "final": 0.0001,
+   "champion": 0.0
+  },
+  "카보베르데": {
+   "r32": 0.2366,
+   "r16": 0.0262,
+   "qf": 0.0052,
+   "sf": 0.0006,
+   "final": 0.0,
+   "champion": 0.0
+  },
+  "프랑스": {
+   "r32": 0.9911,
+   "r16": 0.8701,
+   "qf": 0.7225,
+   "sf": 0.552,
+   "final": 0.4149,
+   "champion": 0.2861
+  },
+  "세네갈": {
+   "r32": 0.8267,
+   "r16": 0.5146,
+   "qf": 0.16,
+   "sf": 0.0709,
+   "final": 0.0319,
+   "champion": 0.0111
+  },
+  "노르웨이": {
+   "r32": 0.523,
+   "r16": 0.2242,
+   "qf": 0.0545,
+   "sf": 0.0126,
+   "final": 0.004,
+   "champion": 0.0007
+  },
+  "이라크": {
+   "r32": 0.2495,
+   "r16": 0.0731,
+   "qf": 0.0114,
+   "sf": 0.0014,
+   "final": 0.0004,
+   "champion": 0.0
+  },
+  "아르헨티나": {
+   "r32": 0.9845,
+   "r16": 0.6815,
+   "qf": 0.5186,
+   "sf": 0.3529,
+   "final": 0.2209,
+   "champion": 0.1206
+  },
+  "오스트리아": {
+   "r32": 0.7476,
+   "r16": 0.2376,
+   "qf": 0.097,
+   "sf": 0.0352,
+   "final": 0.0098,
+   "champion": 0.0024
+  },
+  "알제리": {
+   "r32": 0.6775,
+   "r16": 0.2035,
+   "qf": 0.0766,
+   "sf": 0.0238,
+   "final": 0.0056,
+   "champion": 0.0007
+  },
+  "요르단": {
+   "r32": 0.2311,
+   "r16": 0.0358,
+   "qf": 0.0075,
+   "sf": 0.001,
+   "final": 0.0002,
+   "champion": 0.0
+  },
+  "포르투갈": {
+   "r32": 0.9642,
+   "r16": 0.6723,
+   "qf": 0.4488,
+   "sf": 0.258,
+   "final": 0.143,
+   "champion": 0.0702
+  },
+  "콜롬비아": {
+   "r32": 0.8829,
+   "r16": 0.4702,
+   "qf": 0.2271,
+   "sf": 0.1039,
+   "final": 0.0451,
+   "champion": 0.0158
+  },
+  "우즈베키스탄": {
+   "r32": 0.3749,
+   "r16": 0.077,
+   "qf": 0.0197,
+   "sf": 0.0033,
+   "final": 0.0006,
+   "champion": 0.0
+  },
+  "DR콩고": {
+   "r32": 0.4116,
+   "r16": 0.0929,
+   "qf": 0.021,
+   "sf": 0.0037,
+   "final": 0.001,
+   "champion": 0.0002
+  },
+  "잉글랜드": {
+   "r32": 0.9729,
+   "r16": 0.7109,
+   "qf": 0.4812,
+   "sf": 0.24,
+   "final": 0.1411,
+   "champion": 0.0735
+  },
+  "크로아티아": {
+   "r32": 0.9278,
+   "r16": 0.5622,
+   "qf": 0.2982,
+   "sf": 0.1311,
+   "final": 0.0616,
+   "champion": 0.0243
+  },
+  "가나": {
+   "r32": 0.1449,
+   "r16": 0.019,
+   "qf": 0.0031,
+   "sf": 0.0002,
+   "final": 0.0,
+   "champion": 0.0
+  },
+  "파나마": {
+   "r32": 0.6177,
+   "r16": 0.1952,
+   "qf": 0.0658,
+   "sf": 0.0171,
+   "final": 0.0045,
+   "champion": 0.0014
+  }
+ },
+ "korea": {
+  "group": "A",
+  "groupOpponents": [
+   "멕시코",
+   "남아프리카공화국",
+   "체코"
+  ],
+  "strengthScore": 0.5155,
+  "advanceToR32Prob": 0.797,
+  "groupFinish": {
+   "first": 0.2732,
+   "second": 0.3365,
+   "third": 0.2447,
+   "fourth": 0.1456,
+   "thirdAndAdvanced": 0.1873
+  },
+  "groupMatches": [
+   {
+    "opponent": "멕시코",
+    "win": 0.269,
+    "draw": 0.2632,
+    "loss": 0.4678
+   },
+   {
+    "opponent": "남아프리카공화국",
+    "win": 0.5516,
+    "draw": 0.2442,
+    "loss": 0.2042
+   },
+   {
+    "opponent": "체코",
+    "win": 0.4678,
+    "draw": 0.258,
+    "loss": 0.2742
+   }
+  ],
+  "stageDistribution": {
+   "groupStage": 0.203,
+   "r32": 0.3875,
+   "r16": 0.2353,
+   "qf": 0.1259,
+   "sf": 0.0355,
+   "runnerUp": 0.0101,
+   "champion": 0.0027
+  },
+  "mostLikelyOutcome": {
+   "stage": "r32",
+   "probability": 0.3875,
+   "label": "32강 탈락"
+  }
+ },
+ "darkHorses": {
+  "criterion": "FIFA 랭킹 20위 밖(시드 상위권이 아닌) 팀 중 8강 진출 확률 상위 3팀 — 랭킹 시드 대비 토너먼트 진출 확률이 높은 팀 (한국은 별도 섹션이라 제외)",
+  "teams": [
+   {
+    "team": "이란",
+    "nameEn": "Iran",
+    "group": "G",
+    "fifaRank": 21,
+    "strengthScore": 0.5602,
+    "r32": 0.8696,
+    "r16": 0.4731,
+    "qf": 0.1921
+   },
+   {
+    "team": "튀르키예",
+    "nameEn": "Türkiye",
+    "group": "D",
+    "fifaRank": 22,
+    "strengthScore": 0.5329,
+    "r32": 0.7178,
+    "r16": 0.3359,
+    "qf": 0.1396
+   },
+   {
+    "team": "에콰도르",
+    "nameEn": "Ecuador",
+    "group": "E",
+    "fifaRank": 23,
+    "strengthScore": 0.5257,
+    "r32": 0.8521,
+    "r16": 0.3828,
+    "qf": 0.1306
+   }
+  ]
+ },
+ "groupSummaries": [
+  {
+   "group": "A",
+   "teams": [
+    {
+     "team": "멕시코",
+     "first": 0.5301,
+     "second": 0.2689
+    },
+    {
+     "team": "대한민국",
+     "first": 0.2732,
+     "second": 0.3365
+    },
+    {
+     "team": "체코",
+     "first": 0.1325,
+     "second": 0.2403
+    },
+    {
+     "team": "남아프리카공화국",
+     "first": 0.0642,
+     "second": 0.1543
+    }
+   ]
+  },
+  {
+   "group": "B",
+   "teams": [
+    {
+     "team": "스위스",
+     "first": 0.5369,
+     "second": 0.2803
+    },
+    {
+     "team": "캐나다",
+     "first": 0.2738,
+     "second": 0.3428
+    },
+    {
+     "team": "카타르",
+     "first": 0.1249,
+     "second": 0.2268
+    },
+    {
+     "team": "보스니아 헤르체고비나",
+     "first": 0.0644,
+     "second": 0.1501
+    }
+   ]
+  },
+  {
+   "group": "C",
+   "teams": [
+    {
+     "team": "브라질",
+     "first": 0.5658,
+     "second": 0.3314
+    },
+    {
+     "team": "모로코",
+     "first": 0.3723,
+     "second": 0.4528
+    },
+    {
+     "team": "스코틀랜드",
+     "first": 0.0581,
+     "second": 0.1845
+    },
+    {
+     "team": "아이티",
+     "first": 0.0038,
+     "second": 0.0313
+    }
+   ]
+  },
+  {
+   "group": "D",
+   "teams": [
+    {
+     "team": "미국",
+     "first": 0.4312,
+     "second": 0.2751
+    },
+    {
+     "team": "튀르키예",
+     "first": 0.2398,
+     "second": 0.2783
+    },
+    {
+     "team": "호주",
+     "first": 0.2196,
+     "second": 0.2659
+    },
+    {
+     "team": "파라과이",
+     "first": 0.1094,
+     "second": 0.1807
+    }
+   ]
+  },
+  {
+   "group": "E",
+   "teams": [
+    {
+     "team": "독일",
+     "first": 0.617,
+     "second": 0.2552
+    },
+    {
+     "team": "에콰도르",
+     "first": 0.23,
+     "second": 0.3983
+    },
+    {
+     "team": "코트디부아르",
+     "first": 0.1416,
+     "second": 0.2958
+    },
+    {
+     "team": "퀴라소",
+     "first": 0.0114,
+     "second": 0.0507
+    }
+   ]
+  },
+  {
+   "group": "F",
+   "teams": [
+    {
+     "team": "네덜란드",
+     "first": 0.6116,
+     "second": 0.2551
+    },
+    {
+     "team": "일본",
+     "first": 0.2635,
+     "second": 0.3988
+    },
+    {
+     "team": "스웨덴",
+     "first": 0.0731,
+     "second": 0.1938
+    },
+    {
+     "team": "튀니지",
+     "first": 0.0518,
+     "second": 0.1523
+    }
+   ]
+  },
+  {
+   "group": "G",
+   "teams": [
+    {
+     "team": "벨기에",
+     "first": 0.5764,
+     "second": 0.2794
+    },
+    {
+     "team": "이란",
+     "first": 0.2543,
+     "second": 0.3772
+    },
+    {
+     "team": "이집트",
+     "first": 0.1608,
+     "second": 0.3056
+    },
+    {
+     "team": "뉴질랜드",
+     "first": 0.0085,
+     "second": 0.0378
+    }
+   ]
+  },
+  {
+   "group": "H",
+   "teams": [
+    {
+     "team": "스페인",
+     "first": 0.7448,
+     "second": 0.2203
+    },
+    {
+     "team": "우루과이",
+     "first": 0.2245,
+     "second": 0.5718
+    },
+    {
+     "team": "사우디아라비아",
+     "first": 0.0223,
+     "second": 0.1297
+    },
+    {
+     "team": "카보베르데",
+     "first": 0.0084,
+     "second": 0.0782
+    }
+   ]
+  },
+  {
+   "group": "I",
+   "teams": [
+    {
+     "team": "프랑스",
+     "first": 0.7934,
+     "second": 0.169
+    },
+    {
+     "team": "세네갈",
+     "first": 0.1516,
+     "second": 0.5062
+    },
+    {
+     "team": "노르웨이",
+     "first": 0.0423,
+     "second": 0.2237
+    },
+    {
+     "team": "이라크",
+     "first": 0.0127,
+     "second": 0.1011
+    }
+   ]
+  },
+  {
+   "group": "J",
+   "teams": [
+    {
+     "team": "아르헨티나",
+     "first": 0.7686,
+     "second": 0.1684
+    },
+    {
+     "team": "오스트리아",
+     "first": 0.1245,
+     "second": 0.4033
+    },
+    {
+     "team": "알제리",
+     "first": 0.0933,
+     "second": 0.3321
+    },
+    {
+     "team": "요르단",
+     "first": 0.0136,
+     "second": 0.0962
+    }
+   ]
+  },
+  {
+   "group": "K",
+   "teams": [
+    {
+     "team": "포르투갈",
+     "first": 0.626,
+     "second": 0.2707
+    },
+    {
+     "team": "콜롬비아",
+     "first": 0.293,
+     "second": 0.4406
+    },
+    {
+     "team": "DR콩고",
+     "first": 0.0417,
+     "second": 0.1545
+    },
+    {
+     "team": "우즈베키스탄",
+     "first": 0.0393,
+     "second": 0.1342
+    }
+   ]
+  },
+  {
+   "group": "L",
+   "teams": [
+    {
+     "team": "잉글랜드",
+     "first": 0.5893,
+     "second": 0.2981
+    },
+    {
+     "team": "크로아티아",
+     "first": 0.3294,
+     "second": 0.4449
+    },
+    {
+     "team": "파나마",
+     "first": 0.0722,
+     "second": 0.2141
+    },
+    {
+     "team": "가나",
+     "first": 0.0091,
+     "second": 0.0429
+    }
+   ]
+  }
+ ]
+}

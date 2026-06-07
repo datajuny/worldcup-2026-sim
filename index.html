@@ -1,0 +1,411 @@
+<!doctype html>
+<!-- 2026 월드컵 몬테카를로 시뮬레이션 결과를 단일 파일로 보여주는 대시보드 (JSON은 아래 DATA에 임베드, GitHub Pages·로컬 file:// 겸용) -->
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="시드 고정 몬테카를로 시뮬레이션으로 본 2026 북중미 월드컵 확률 분포 리포트">
+<title>2026 월드컵 몬테카를로 시뮬레이션 | 미드나잇 로그</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%230F1420'/><circle cx='32' cy='32' r='13' fill='none' stroke='%23FFC83D' stroke-width='4'/><circle cx='32' cy='32' r='4' fill='%23FFC83D'/></svg>">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  background:#0F1420;
+  background:linear-gradient(180deg,#0F1420 0%,#131C2B 45%,#0F1420 100%);
+  color:#EAF1FB;
+  font-family:"Pretendard Variable",Pretendard,-apple-system,BlinkMacSystemFont,system-ui,"Segoe UI",Roboto,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif;
+  line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+  word-break:keep-all;
+}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace}
+.wrap{max-width:720px;margin:0 auto;padding:44px 20px 70px}
+
+/* ───── 헤더 ───── */
+.hero{padding:8px 2px 6px}
+.eyebrow{font-size:11px;letter-spacing:.22em;color:#FFC83D;font-weight:700}
+.eyebrow::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:#FFC83D;margin-right:8px;vertical-align:1px}
+h1{font-size:34px;line-height:1.22;font-weight:800;margin-top:14px;letter-spacing:-.01em}
+h1 .hl{color:#FFC83D}
+.hero-sub{margin-top:14px;font-size:15.5px;color:#AFC6E4;font-weight:600}
+.hero-sub .mono{font-size:13px;color:#7E8CA3;font-weight:400}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.chip{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:999px;padding:5px 12px;font-size:12.5px;color:#AFC6E4}
+.chip b{color:#EAF1FB;font-weight:700}
+.chip-red{color:#FF5A5A;border-color:rgba(255,90,90,.35);background:rgba(255,90,90,.07);font-size:11px;padding:2px 8px}
+
+/* ───── 섹션 카드 ───── */
+.card{background:#151E2C;border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:26px 22px;margin-top:26px}
+.sec-head{display:flex;gap:14px;align-items:flex-start}
+.sec-num{font-family:ui-monospace,Menlo,monospace;font-size:12px;color:#FFC83D;border:1px solid rgba(255,200,61,.4);border-radius:8px;padding:3px 8px;margin-top:3px;flex-shrink:0}
+.sec-head h2{font-size:20px;font-weight:800;letter-spacing:-.01em}
+.sec-sub{font-size:13.5px;color:#7E8CA3;margin-top:3px}
+.sec-body{margin-top:20px}
+.sub-block{margin-top:28px}
+.sub-block h3{font-size:15px;font-weight:700;color:#AFC6E4;margin-bottom:14px;display:flex;align-items:center}
+.sub-block h3::before{content:"";display:inline-block;width:3px;height:13px;background:#FFC83D;margin-right:9px;border-radius:2px}
+.foot{font-size:12px;color:#7E8CA3;margin-top:14px;line-height:1.6}
+
+/* ───── 공통 바 ───── */
+.bar{height:12px;background:rgba(255,255,255,.06);border-radius:999px;overflow:hidden;min-width:0}
+.bar-sm{height:9px}
+.bar-fill{height:100%;width:0;border-radius:999px;transition:width .9s cubic-bezier(.22,1,.36,1)}
+body.ready .bar-fill{width:var(--w)}
+.fill-blue{background:linear-gradient(90deg,#5d86c8,#8AB4F8)}
+.fill-yellow{background:linear-gradient(90deg,#e0a922,#FFC83D)}
+
+/* ───── 1. 우승 확률 ───── */
+.champ-row{padding:9px 0}
+.champ-row + .champ-row{border-top:1px solid rgba(255,255,255,.05)}
+.champ-line{display:flex;align-items:baseline;gap:10px;margin-bottom:7px}
+.rank{font-family:ui-monospace,Menlo,monospace;font-size:12px;color:#7E8CA3;width:24px;flex-shrink:0}
+.tname{font-size:15.5px;font-weight:600}
+.pct{margin-left:auto;font-size:20px;font-weight:800;letter-spacing:-.01em;font-variant-numeric:tabular-nums}
+.is-top .pct{color:#FFC83D;font-size:24px}
+.is-top .tname{color:#FFC83D}
+
+/* ───── 2. 한국 ───── */
+.kr-hero{display:flex;flex-wrap:wrap;gap:18px 28px;align-items:flex-end;background:#1B2638;border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:20px}
+.kr-num{font-size:54px;font-weight:800;color:#FFC83D;line-height:1;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.kr-label{font-size:13.5px;color:#AFC6E4;margin-top:8px}
+.kr-meta{font-size:13px;color:#7E8CA3;line-height:1.8}
+.kr-meta b{color:#EAF1FB;font-weight:700}
+.callout{margin-top:16px;padding:13px 16px;border-radius:10px;font-size:14px;color:#D7E2F2;line-height:1.6}
+.callout b{font-weight:800}
+.callout-yellow{border-left:3px solid #FFC83D;background:rgba(255,200,61,.07)}
+.callout-yellow b{color:#FFC83D}
+.callout-red{border-left:3px solid #FF5A5A;background:rgba(255,90,90,.07)}
+.callout-red b{color:#FF5A5A}
+.callout-blue{border-left:3px solid #8AB4F8;background:rgba(138,180,248,.07)}
+.callout-blue b{color:#8AB4F8}
+.mini-row{display:grid;grid-template-columns:96px 1fr 62px;gap:10px;align-items:center;padding:5px 0}
+.mini-label{font-size:13px;color:#AFC6E4}
+.mini-pct{font-size:13.5px;font-weight:700;text-align:right;font-variant-numeric:tabular-nums}
+.mini-row.is-hot .mini-label,.mini-row.is-hot .mini-pct{color:#FFC83D;font-weight:800}
+.match{margin-bottom:18px}
+.match:last-child{margin-bottom:0}
+.match-name{font-size:14.5px;font-weight:700;margin-bottom:8px}
+.splitbar{display:flex;height:16px;border-radius:999px;overflow:hidden;background:rgba(255,255,255,.06)}
+.seg{width:0;height:100%;transition:width .9s cubic-bezier(.22,1,.36,1)}
+body.ready .seg{width:var(--w)}
+.seg-win{background:#4ADE80}
+.seg-draw{background:#566378}
+.seg-loss{background:#FF5A5A}
+.match-legend{display:flex;gap:16px;margin-top:8px;font-size:12.5px;color:#AFC6E4;flex-wrap:wrap;font-variant-numeric:tabular-nums}
+.dot{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:5px;vertical-align:-.5px}
+.dot-win{background:#4ADE80}.dot-draw{background:#566378}.dot-loss{background:#FF5A5A}
+
+/* ───── 3. 전력 점수 ───── */
+.formula{font-size:12.5px;color:#AFC6E4;background:#0F1420;border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:13px 15px;line-height:1.7;overflow-wrap:break-word}
+.legend{display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:14px;font-size:12.5px;color:#AFC6E4}
+.dot-rank{background:#8AB4F8}.dot-form{background:#4ADE80}.dot-val{background:#FFC83D}
+.dot-corr{background:rgba(255,255,255,.34)}
+.dot-pen{background:repeating-linear-gradient(135deg,#FF5A5A 0,#FF5A5A 3px,#7d2e2e 3px,#7d2e2e 6px)}
+.dot-ronly{background:#46536b}
+.str-row{padding:9px 0}
+.str-row + .str-row{border-top:1px solid rgba(255,255,255,.05)}
+.str-line{display:flex;align-items:center;gap:8px;margin-bottom:7px;flex-wrap:wrap}
+.str-line .tname{font-size:14.5px}
+.score{margin-left:auto;font-family:ui-monospace,Menlo,monospace;font-size:14px;font-weight:700;color:#AFC6E4;font-variant-numeric:tabular-nums}
+.badge{font-size:11px;padding:2px 8px;border-radius:999px;border:1px solid;line-height:1.5}
+.badge-green{color:#4ADE80;border-color:rgba(74,222,128,.4)}
+.badge-yellow{color:#FFC83D;border-color:rgba(255,200,61,.4)}
+.badge-muted{color:#7E8CA3;border-color:rgba(126,140,163,.4)}
+.strbar{display:flex;height:14px;width:0;border-radius:4px;overflow:hidden;transition:width .9s cubic-bezier(.22,1,.36,1)}
+body.ready .strbar{width:var(--tw)}
+.sseg{width:var(--w);height:100%;flex-shrink:0}
+.s-rank{background:#8AB4F8}.s-form{background:#4ADE80}.s-val{background:#FFC83D}
+.s-corr{background:rgba(255,255,255,.30)}
+.s-pen{background:repeating-linear-gradient(135deg,#FF5A5A 0,#FF5A5A 4px,#7d2e2e 4px,#7d2e2e 8px)}
+.s-ronly{background:#46536b}
+
+/* ───── 4. 다크호스 ───── */
+.dh-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px}
+.dh-card{background:#1B2638;border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:16px}
+.dh-name{font-size:17px;font-weight:800}
+.dh-meta{font-size:12px;color:#7E8CA3;margin:4px 0 12px}
+.dh-card .mini-row{grid-template-columns:42px 1fr 58px;gap:8px;padding:4px 0}
+.dh-card .mini-label{font-size:12px}
+.dh-card .mini-pct{font-size:12.5px}
+
+/* ───── 5. 한계 ───── */
+ol.limits{list-style:none;counter-reset:lim;margin-top:18px}
+ol.limits li{display:flex;gap:12px;padding:11px 0;font-size:13.5px;color:#B9C6DA;line-height:1.65;border-bottom:1px dashed rgba(255,255,255,.08)}
+ol.limits li:last-child{border-bottom:none}
+ol.limits li::before{counter-increment:lim;content:counter(lim,decimal-leading-zero);font-family:ui-monospace,Menlo,monospace;font-size:12px;color:#FFC83D;flex-shrink:0;margin-top:2px}
+
+.pfoot{margin-top:40px;font-size:12px;color:#7E8CA3;line-height:1.8;text-align:center}
+
+@media (max-width:480px){
+  .wrap{padding:32px 16px 56px}
+  h1{font-size:27px}
+  .kr-num{font-size:44px}
+  .card{padding:20px 16px}
+  .mini-row{grid-template-columns:88px 1fr 58px}
+  .dh-grid{grid-template-columns:1fr}
+  .pct{font-size:18px}
+  .is-top .pct{font-size:21px}
+}
+@media (max-width:560px) and (min-width:481px){
+  .dh-grid{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:reduce){
+  .bar-fill,.seg,.strbar{transition:none}
+}
+</style>
+</head>
+<body>
+<div id="app" class="wrap"></div>
+<script>
+// 모든 표시 수치는 아래 DATA에서만 렌더링한다 (하드코딩 금지). file:// 환경 fetch 차단 대응으로 JSON 전체 임베드.
+const DATA = {"meta":{"seed":42,"iterations":10000,"avgGoalsPerMatch":2.69,"generatedOn":"2026-06-07","matchesPerIteration":104,"baseGoals":1.22,"alpha":1.15},"model":{"strengthFormula":"S = 0.55·norm(fifaPoints) + 0.20·(최근 10경기 승점률) + 0.25·norm(log(시장가치 MEUR)) − 부상 페널티 + 커버리지 보정상수(상세 데이터 8개국에만 적용)","weights":{"rank":{"value":0.55,"rationale":"FIFA 포인트는 수년치 공식 경기 결과를 누적 반영하는 가장 안정적인 단일 지표라 베이스로 최대 가중"},"form":{"value":0.2,"rationale":"최근 10경기는 현재 컨디션을 반영하지만 표본이 작고 친선전이 섞여 노이즈가 커서 보조 가중"},"value":{"value":0.25,"rationale":"스쿼드 시장가치(로그 스케일)는 랭킹이 못 잡는 선수단 체급 차이의 대리 지표 — 랭킹 포인트가 거의 같은 1~3위(프랑스·스페인·아르헨티나)를 변별하는 핵심 항목"},"injuryPenalty":{"value":0.02,"rationale":"확인된 주전 부상 보도가 있는 잉글랜드(Livramento·Colwill 제외, James·Spence 복귀 직후, Stones 피트니스 우려)에만 0.02 감점 — 타 팀은 부상 데이터 미확보라 0"},"coverageBiasCorrection":{"value":0.1176,"rationale":"상세 데이터 8개국의 평균 점수를 같은 8개국의 랭킹 단독 점수 평균과 일치시키는 상수 — 데이터가 있다는 이유로 코호트 전체가 랭킹 단독 40개국 대비 불리해지는 비대칭 제거 (코호트 내부 서열은 폼·시장가치·부상으로 결정)"}},"matchModel":"lambda_A = 1.22 × exp(1.15 × (S_A − S_B)) 양 팀 독립 Poisson(Knuth 샘플링), 동률 시 연장(λ×1/3 Poisson) → 승부차기(전력차 반영 0.5±0.15)","limitations":["폼·시장가치·부상은 FIFA 상위 8개국만 조사됨 — 나머지 40개국은 FIFA 랭킹 100%(dataCoverage: ranking-only). 9~16위권(독일·벨기에·크로아티아 등)의 폼·시장가치는 미반영이라 이들 점수는 상대적으로 보수적","스페인·잉글랜드 시장가치는 EUR 확정치 미확보(USD 2차 보도만) — 상세 코호트 평균 norm 값(0.5212)으로 대체(imputed)","부상 데이터는 잉글랜드만 확보 — 타 팀 페널티 0은 '부상 없음'이 아니라 '데이터 없음'","팀 컨덕트 스코어(옐로·레드카드)는 데이터가 없어 조 순위·3위 비교 모두에서 모델링 불가 — 승점→골득실→다득점→FIFA 포인트→난수 추첨 순으로 대체. 조 내 동률 시 헤드투헤드 규정도 미적용","3위 8팀의 32강 슬롯 배정은 FIFA 규정 Annex C의 495가지 조합표 대신 '슬롯별 허용 조 풀 안 이분 매칭' 근사 — 매칭 실패 폴백 발생 0/10000회","16강 이후 대진은 조사 데이터에 없어 32강 매치(73~88) 승자를 번호 순서대로 페어링(W73 vs W74, …)하는 근사 — 실제 FIFA 브래킷과 다를 수 있음","미반영 변수: 감독 전술, 선수 컨디션·피로, 날씨·기온, 이동 거리, 홈 어드밴티지(개최 3국 미국·캐나다·멕시코 보정 없음), 승부차기 전문 능력","프랑스 최근 10경기 중 코트디부아르전은 소스 상충(ESPN 1-2 패 vs 타 소스 0-0 무) — ESPN 표기(패) 채택","avgGoalsPerMatch는 정규 90분 득점 기준(연장 득점 제외), 3·4위전 포함 104경기 전체 평균","결과는 단정 예측이 아니라 시드 고정 몬테카를로의 확률 분포 — 모델 가정이 바뀌면 수치도 바뀜"]},"teams":[{"name":"멕시코","nameEn":"Mexico","group":"A","fifaRank":15,"fifaPoints":1681.03,"strengthScore":0.6705,"components":{"ranking":0.6705,"form":null,"marketValue":null,"injuryPenalty":0.0},"dataCoverage":"ranking-only"},{"name":"남아프리카공화국","nameEn":"South Africa","group":"A","fifaRank":60,"fifaPoints":1429.73,"strengthScore":0.2487,"components":{"ranking":0.2487,"form":null,"marketValue":null,"injuryPenalty":0.0},"dataCoverage":"ranking-only"},{"name":"대한민국","nameEn":"South Korea","group":"A","fifaRank":25,"fifaPoints":1588.66,"strengthScore":0.5155,"components":{"ranking":0.5155,"form":null,"marketValue":null,"injuryPenalty":0.0},"dataCoverage":"ranking-only"},{"name":"체코","nameEn":"Czechia","group":"A","fifaRank":41,"fifaPoints":1501.38,"strengthScore":0.369,"components":{"ranking":0.369,"form":null,"marketValue":null,"injuryPenalty":0.0},"dataCoverage":"ranking-only"},{"name":"캐나다","nameEn":"Canada","group":"B","fifaRank":30,"fifaPoints":1556.48,"strengthScore":0.4615,"components":{"ranking":0.4615,"form":null,"marketValue":null,"injuryPenalty":0.0},"dataCoverage":"ranking-only"},{"name":"스위스","nameEn":"Switzerland","group":"B","fifaRank":19,"fifaPoints":1649.4,"strengthScore":0.6174,"components":{"ranking":0.6174,"form":null,"marketValue":null,"injuryPenalty":0.0},"dataCoverage":"ranking-only"},{"name":"카타르","nameEn":"Qatar","group":"B","fifaRank":55,"fifaPoints":1454.96,"strengthScore":0.291,"components":{"ranking":0.291,"form":null,"marketValue":null,"injuryPenalty":0.0},"dataCoverage":"ranking-only"},{"name":"보스니아 헤르체고비나","nameEn":"Bosnia and Herzegovina","group":"B","fifaRank":65,"fifaPoints":1385.84,"strengthScore":0.175,"components":{"ranking":0.175,"form":null,"marketValue":null,"injuryPenalty":0.0},"dataCoverage":"ranking-only"},{"name":"브라질","nameEn":"Brazil","group":"C","fifaRank":6,"fifaPoints":1761.16,"strengthScore":0.8246,"components":{"ranking":0.805,"form":0.6333,"marketValue":0.5504,"injuryPenalty":0.0},"dataCoverage":"full","formRecord":"6승 1무 3패","marketValueMEUR":912.2},{"name":"모로코","nameEn":"Morocco","group":"C","fifaRank":8,"fifaPoints":1755.87,"strengthScore":0.7288,"components":{"ranking":0.7961,"form":0.8667,"marketValue":0.0,"injuryPenalty":0.0},"dataCoverage":"full","formRecord":"8승 2무","marketValueMEUR":488.2},{"name":"스코틀랜드","nameEn":"Scotland","group":"C","fifaRank":43,"fifaPoints":1498.35,"strengthScore":0.3639,"components":{"ranking":0.3639,"form":null,"marketValue":null,"injuryPenalty":0.0},"dataCoverage":"ranking-only"},{"name":"아이티","nameEn":"Haiti","group":"C","fifaRank":83,"fifaPoints":1291.71,"strengthScore":0.017,"components":{"ranking":0.017,"form":null,"marketValue":null,"injuryPenalty":0.0},"dataCoverage":"ranking-only"},{"name":"미국","nameEn":"United States","group":"D","fifaRank":16,"fifaPoints":1673.13,"strengthScore":0.6573,"components":{"ranking":0.6573,"form":null,"marketValue":null,"injuryPenalty":0.0},"dataCoverage":"ranking-only"},{"name":"파라과이","nameEn":"Paraguay","group":"D","fifaRank":40,"fifaPoints":1503.5,"strengthScore":0.3725,"components":{"ranking":0.3725,"form":null,"marketValue":null,"injuryPenalty":0.0},"dataCoverage":"ranking-only"},{"name":"호주","nameEn":"Australia","group":"D","fifaRank":27,"fifaPoints":1580.67,"strengthScore":0.5021,"components":{"ranking":0.5021,"form":null,"marketValue":null,"injuryPenalty":0.0},"dataCoverage":"ranking-only"},{"name":"튀르키예","nameEn":"Türkiye","group":"D","fifaRank":22,"fifaPoints":1599.04,"strengthScore":0.5329,"components":{"ranking":0.5329,"form":null,"marketValue":null,"injuryPenalty":0.0},"dataCoverage":"ranking-only"},{"name":"독일","nameEn":"Germany","group":"E","fifaRank":10,"fifaPoints":1730.37,"strengthScore":0.7533,"components":{"ranking":0.7533,"form":null,"marketValue":null,"injuryPenalty":0.0},"dataCoverage":"ranking-only"},{"name":"에콰도르","nameEn":"Ecuador","group":"E","fifaRank":23,"fifaPoints":1594.78,"strengthScore":0.5257,"components":{"ranking":0.5257,"form":null,"marketValue":null,"injuryPenalty":0.0},"dataCoverage":"ranking-only"},{"name":"코트디부아르","nameEn":"Ivory Coast","group":"E","fifaRank":34,"fifaPoints":1532.98,"strengthScore":0.422,"components":{"ranking":0.422,"form":null,"marketValue":null,"injuryPenalty":0.0},"dataCoverage":"ranking-only"},{"name":"퀴라소","nameEn":"Curaçao","group":"E","fifaRank":82,"fifaPoints":1294.65,"strengthScore":0.022,"components":{"ranking":0.022,"form":null,"marketValue":null,"injuryPenalty":0.0},"dataCoverage":"ranking-only"},{"name":"네덜란드","nameEn":"Netherlands","group":"F","fifaRank":7,"fifaPoints":1757.87,"strengthScore":0.836,"components":{"ranking":0.7995,"form":0.8,"marketValue":0.4749,"injuryPenalty":0.0},"dataCoverage":"full","formRecord":"7승 3무","marketValueMEUR":837.2},{"name":"일본","nameEn":"Japan","group":"F","fifaRank":18,"fifaPoints":1660.43,"strengthScore":0.6359,"components":{"ranking":0.6359,"form":null,"marketValue":null,"injuryPenalty":0.0},"dataCoverage":"ranking-only"},{"name":"스웨덴","nameEn":"Sweden","group":"F","fifaRank":38,"fifaPoints":1514.77,"strengthScore":0.3914,"components":{"ranking":0.3914,"form":null,"marketValue":null,"injuryPenalty":0.0},"dataCoverage":"ranking-only"},{"name":"튀니지","nameEn":"Tunisia","group":"F","fifaRank":44,"fifaPoints":1483.05,"strengthScore":0.3382,"components":{"ranking":0.3382,"form":null,"marketValue":null,"injuryPenalty":0.0},"dataCoverage":"ranking-only"},{"name":"벨기에","nameEn":"Belgium","group":"G","fifaRank":9,"fifaPoints":1734.71,"strengthScore":0.7606,"components":{"ranking":0.7606,"form":null,"marketValue":null,"injuryPenalty":0.0},"dataCoverage":"ranking-only"},{"name":"이란","nameEn":"Iran","group":"G","fifaRank":21,"fifaPoints":1615.3,"strengthScore":0.5602,"components":{"ranking":0.5602,"form":null,"marketValue":null,"injuryPenalty":0.0},"dataCoverage":"ranking-only"},{"name":"이집트","nameEn":"Egypt","group":"G","fifaRank":29,"fifaPoints":1563.24,"strengthScore":0.4728,"components":{"ranking":0.4728,"form":null,"marketValue":null,"injuryPenalty":0.0},"dataCoverage":"ranking-only"},{"name":"뉴질랜드","nameEn":"New Zealand","group":"G","fifaRank":85,"fifaPoints":1281.57,"strengthScore":0.0,"components":{"ranking":0.0,"form":null,"marketValue":null,"injuryPenalty":0.0},"dataCoverage":"ranking-only"},{"name":"스페인","nameEn":"Spain","group":"H","fifaRank":2,"fifaPoints":1876.4,"strengthScore":0.957,"components":{"ranking":0.9985,"form":0.8,"marketValue":0.5212,"injuryPenalty":0.0},"dataCoverage":"detail-value-imputed","formRecord":"7승 3무","marketValueMEUR":null},{"name":"우루과이","nameEn":"Uruguay","group":"H","fifaRank":17,"fifaPoints":1673.07,"strengthScore":0.6572,"components":{"ranking":0.6572,"form":null,"marketValue":null,"injuryPenalty":0.0},"dataCoverage":"ranking-only"},{"name":"사우디아라비아","nameEn":"Saudi Arabia","group":"H","fifaRank":61,"fifaPoints":1421.43,"strengthScore":0.2348,"components":{"ranking":0.2348,"form":null,"marketValue":null,"injuryPenalty":0.0},"dataCoverage":"ranking-only"},{"name":"카보베르데","nameEn":"Cape Verde","group":"H","fifaRank":69,"fifaPoints":1366.13,"strengthScore":0.1419,"components":{"ranking":0.1419,"form":null,"marketValue":null,"injuryPenalty":0.0},"dataCoverage":"ranking-only"},{"name":"프랑스","nameEn":"France","group":"I","fifaRank":1,"fifaPoints":1877.32,"strengthScore":1.0843,"components":{"ranking":1.0,"form":0.8333,"marketValue":1.0,"injuryPenalty":0.0},"dataCoverage":"full","formRecord":"8승 1무 1패","marketValueMEUR":1520.0},{"name":"세네갈","nameEn":"Senegal","group":"I","fifaRank":14,"fifaPoints":1688.99,"strengthScore":0.6839,"components":{"ranking":0.6839,"form":null,"marketValue":null,"injuryPenalty":0.0},"dataCoverage":"ranking-only"},{"name":"노르웨이","nameEn":"Norway","group":"I","fifaRank":31,"fifaPoints":1550.94,"strengthScore":0.4522,"components":{"ranking":0.4522,"form":null,"marketValue":null,"injuryPenalty":0.0},"dataCoverage":"ranking-only"},{"name":"이라크","nameEn":"Iraq","group":"I","fifaRank":57,"fifaPoints":1447.14,"strengthScore":0.2779,"components":{"ranking":0.2779,"form":null,"marketValue":null,"injuryPenalty":0.0},"dataCoverage":"ranking-only"},{"name":"아르헨티나","nameEn":"Argentina","group":"J","fifaRank":3,"fifaPoints":1874.81,"strengthScore":0.9453,"components":{"ranking":0.9958,"form":0.8333,"marketValue":0.4534,"injuryPenalty":0.0},"dataCoverage":"full","formRecord":"8승 1무 1패","marketValueMEUR":817.0},{"name":"오스트리아","nameEn":"Austria","group":"J","fifaRank":24,"fifaPoints":1593.45,"strengthScore":0.5235,"components":{"ranking":0.5235,"form":null,"marketValue":null,"injuryPenalty":0.0},"dataCoverage":"ranking-only"},{"name":"알제리","nameEn":"Algeria","group":"J","fifaRank":28,"fifaPoints":1564.26,"strengthScore":0.4745,"components":{"ranking":0.4745,"form":null,"marketValue":null,"injuryPenalty":0.0},"dataCoverage":"ranking-only"},{"name":"요르단","nameEn":"Jordan","group":"J","fifaRank":63,"fifaPoints":1391.45,"strengthScore":0.1844,"components":{"ranking":0.1844,"form":null,"marketValue":null,"injuryPenalty":0.0},"dataCoverage":"ranking-only"},{"name":"포르투갈","nameEn":"Portugal","group":"K","fifaRank":5,"fifaPoints":1763.83,"strengthScore":0.865,"components":{"ranking":0.8095,"form":0.7,"marketValue":0.6488,"injuryPenalty":0.0},"dataCoverage":"full","formRecord":"6승 3무 1패","marketValueMEUR":1020.0},{"name":"콜롬비아","nameEn":"Colombia","group":"K","fifaRank":13,"fifaPoints":1693.09,"strengthScore":0.6908,"components":{"ranking":0.6908,"form":null,"marketValue":null,"injuryPenalty":0.0},"dataCoverage":"ranking-only"},{"name":"우즈베키스탄","nameEn":"Uzbekistan","group":"K","fifaRank":50,"fifaPoints":1465.34,"strengthScore":0.3085,"components":{"ranking":0.3085,"form":null,"marketValue":null,"injuryPenalty":0.0},"dataCoverage":"ranking-only"},{"name":"DR콩고","nameEn":"DR Congo","group":"K","fifaRank":46,"fifaPoints":1478.35,"strengthScore":0.3303,"components":{"ranking":0.3303,"form":null,"marketValue":null,"injuryPenalty":0.0},"dataCoverage":"ranking-only"},{"name":"잉글랜드","nameEn":"England","group":"L","fifaRank":4,"fifaPoints":1825.97,"strengthScore":0.8772,"components":{"ranking":0.9138,"form":0.7333,"marketValue":0.5212,"injuryPenalty":0.02},"dataCoverage":"detail-value-imputed","formRecord":"7승 1무 2패","marketValueMEUR":null},{"name":"크로아티아","nameEn":"Croatia","group":"L","fifaRank":11,"fifaPoints":1717.07,"strengthScore":0.731,"components":{"ranking":0.731,"form":null,"marketValue":null,"injuryPenalty":0.0},"dataCoverage":"ranking-only"},{"name":"가나","nameEn":"Ghana","group":"L","fifaRank":74,"fifaPoints":1346.31,"strengthScore":0.1087,"components":{"ranking":0.1087,"form":null,"marketValue":null,"injuryPenalty":0.0},"dataCoverage":"ranking-only"},{"name":"파나마","nameEn":"Panama","group":"L","fifaRank":33,"fifaPoints":1540.64,"strengthScore":0.4349,"components":{"ranking":0.4349,"form":null,"marketValue":null,"injuryPenalty":0.0},"dataCoverage":"ranking-only"}],"championProbs":[{"team":"프랑스","nameEn":"France","prob":0.2861},{"team":"스페인","nameEn":"Spain","prob":0.13},{"team":"아르헨티나","nameEn":"Argentina","prob":0.1206},{"team":"잉글랜드","nameEn":"England","prob":0.0735},{"team":"포르투갈","nameEn":"Portugal","prob":0.0702},{"team":"네덜란드","nameEn":"Netherlands","prob":0.0489},{"team":"브라질","nameEn":"Brazil","prob":0.0483},{"team":"벨기에","nameEn":"Belgium","prob":0.0372},{"team":"독일","nameEn":"Germany","prob":0.027},{"team":"크로아티아","nameEn":"Croatia","prob":0.0243},{"team":"모로코","nameEn":"Morocco","prob":0.0197},{"team":"콜롬비아","nameEn":"Colombia","prob":0.0158},{"team":"멕시코","nameEn":"Mexico","prob":0.0149},{"team":"미국","nameEn":"United States","prob":0.0144},{"team":"우루과이","nameEn":"Uruguay","prob":0.0123},{"team":"세네갈","nameEn":"Senegal","prob":0.0111},{"team":"스위스","nameEn":"Switzerland","prob":0.0104},{"team":"일본","nameEn":"Japan","prob":0.0083},{"team":"이란","nameEn":"Iran","prob":0.0055},{"team":"튀르키예","nameEn":"Türkiye","prob":0.0032},{"team":"대한민국","nameEn":"South Korea","prob":0.0027},{"team":"에콰도르","nameEn":"Ecuador","prob":0.0026},{"team":"오스트리아","nameEn":"Austria","prob":0.0024},{"team":"이집트","nameEn":"Egypt","prob":0.0019},{"team":"캐나다","nameEn":"Canada","prob":0.0019},{"team":"호주","nameEn":"Australia","prob":0.0015},{"team":"파나마","nameEn":"Panama","prob":0.0014},{"team":"알제리","nameEn":"Algeria","prob":0.0007},{"team":"노르웨이","nameEn":"Norway","prob":0.0007},{"team":"스웨덴","nameEn":"Sweden","prob":0.0006},{"team":"코트디부아르","nameEn":"Ivory Coast","prob":0.0005},{"team":"체코","nameEn":"Czechia","prob":0.0004},{"team":"스코틀랜드","nameEn":"Scotland","prob":0.0003},{"team":"파라과이","nameEn":"Paraguay","prob":0.0002},{"team":"DR콩고","nameEn":"DR Congo","prob":0.0002},{"team":"튀니지","nameEn":"Tunisia","prob":0.0001},{"team":"남아프리카공화국","nameEn":"South Africa","prob":0.0001},{"team":"보스니아 헤르체고비나","nameEn":"Bosnia and Herzegovina","prob":0.0001},{"team":"우즈베키스탄","nameEn":"Uzbekistan","prob":0.0},{"team":"카타르","nameEn":"Qatar","prob":0.0},{"team":"이라크","nameEn":"Iraq","prob":0.0},{"team":"사우디아라비아","nameEn":"Saudi Arabia","prob":0.0},{"team":"요르단","nameEn":"Jordan","prob":0.0},{"team":"카보베르데","nameEn":"Cape Verde","prob":0.0},{"team":"가나","nameEn":"Ghana","prob":0.0},{"team":"퀴라소","nameEn":"Curaçao","prob":0.0},{"team":"아이티","nameEn":"Haiti","prob":0.0},{"team":"뉴질랜드","nameEn":"New Zealand","prob":0.0}],"roundProbs":{"멕시코":{"r32":0.9107,"r16":0.5907,"qf":0.2953,"sf":0.1015,"final":0.0416,"champion":0.0149},"남아프리카공화국":{"r32":0.4057,"r16":0.1165,"qf":0.0267,"sf":0.0033,"final":0.0004,"champion":0.0001},"대한민국":{"r32":0.797,"r16":0.4095,"qf":0.1742,"sf":0.0483,"final":0.0128,"champion":0.0027},"체코":{"r32":0.6065,"r16":0.2366,"qf":0.0774,"sf":0.0139,"final":0.0021,"champion":0.0004},"캐나다":{"r32":0.8002,"r16":0.3654,"qf":0.1262,"sf":0.036,"final":0.0079,"champion":0.0019},"스위스":{"r32":0.9253,"r16":0.5459,"qf":0.2263,"sf":0.0927,"final":0.0324,"champion":0.0104},"카타르":{"r32":0.5806,"r16":0.1903,"qf":0.0459,"sf":0.0087,"final":0.0015,"champion":0.0},"보스니아 헤르체고비나":{"r32":0.3959,"r16":0.0969,"qf":0.0185,"sf":0.0024,"final":0.0002,"champion":0.0001},"브라질":{"r32":0.9778,"r16":0.616,"qf":0.3701,"sf":0.2434,"final":0.1018,"champion":0.0483},"모로코":{"r32":0.9521,"r16":0.4938,"qf":0.2282,"sf":0.1304,"final":0.0496,"champion":0.0197},"스코틀랜드":{"r32":0.6063,"r16":0.1391,"qf":0.0378,"sf":0.0089,"final":0.0015,"champion":0.0003},"아이티":{"r32":0.1192,"r16":0.0094,"qf":0.0011,"sf":0.0001,"final":0.0,"champion":0.0},"미국":{"r32":0.8551,"r16":0.5115,"qf":0.269,"sf":0.1069,"final":0.0433,"champion":0.0144},"파라과이":{"r32":0.4797,"r16":0.1643,"qf":0.0478,"sf":0.0091,"final":0.0013,"champion":0.0002},"호주":{"r32":0.6914,"r16":0.3129,"qf":0.1241,"sf":0.036,"final":0.0092,"champion":0.0015},"튀르키예":{"r32":0.7178,"r16":0.3359,"qf":0.1396,"sf":0.0434,"final":0.0124,"champion":0.0032},"독일":{"r32":0.9703,"r16":0.6406,"qf":0.3713,"sf":0.1759,"final":0.0707,"champion":0.027},"에콰도르":{"r32":0.8521,"r16":0.3828,"qf":0.1306,"sf":0.0403,"final":0.0107,"champion":0.0026},"코트디부아르":{"r32":0.7417,"r16":0.2724,"qf":0.0732,"sf":0.0164,"final":0.0033,"champion":0.0005},"퀴라소":{"r32":0.1528,"r16":0.0204,"qf":0.0021,"sf":0.0003,"final":0.0,"champion":0.0},"네덜란드":{"r32":0.9502,"r16":0.5737,"qf":0.3409,"sf":0.2292,"final":0.1002,"champion":0.0489},"일본":{"r32":0.8271,"r16":0.3629,"qf":0.1503,"sf":0.072,"final":0.023,"champion":0.0083},"스웨덴":{"r32":0.495,"r16":0.1432,"qf":0.0348,"sf":0.0088,"final":0.0016,"champion":0.0006},"튀니지":{"r32":0.3993,"r16":0.098,"qf":0.0214,"sf":0.0046,"final":0.0005,"champion":0.0001},"벨기에":{"r32":0.9698,"r16":0.6894,"qf":0.4188,"sf":0.1936,"final":0.0913,"champion":0.0372},"이란":{"r32":0.8696,"r16":0.4731,"qf":0.1921,"sf":0.0641,"final":0.0209,"champion":0.0055},"이집트":{"r32":0.784,"r16":0.3661,"qf":0.1169,"sf":0.0336,"final":0.0092,"champion":0.0019},"뉴질랜드":{"r32":0.1213,"r16":0.0179,"qf":0.0015,"sf":0.0,"final":0.0,"champion":0.0},"스페인":{"r32":0.9916,"r16":0.7265,"qf":0.5045,"sf":0.3676,"final":0.2295,"champion":0.13},"우루과이":{"r32":0.9107,"r16":0.3754,"qf":0.2025,"sf":0.0992,"final":0.0364,"champion":0.0123},"사우디아라비아":{"r32":0.3787,"r16":0.0566,"qf":0.0127,"sf":0.0017,"final":0.0001,"champion":0.0},"카보베르데":{"r32":0.2366,"r16":0.0262,"qf":0.0052,"sf":0.0006,"final":0.0,"champion":0.0},"프랑스":{"r32":0.9911,"r16":0.8701,"qf":0.7225,"sf":0.552,"final":0.4149,"champion":0.2861},"세네갈":{"r32":0.8267,"r16":0.5146,"qf":0.16,"sf":0.0709,"final":0.0319,"champion":0.0111},"노르웨이":{"r32":0.523,"r16":0.2242,"qf":0.0545,"sf":0.0126,"final":0.004,"champion":0.0007},"이라크":{"r32":0.2495,"r16":0.0731,"qf":0.0114,"sf":0.0014,"final":0.0004,"champion":0.0},"아르헨티나":{"r32":0.9845,"r16":0.6815,"qf":0.5186,"sf":0.3529,"final":0.2209,"champion":0.1206},"오스트리아":{"r32":0.7476,"r16":0.2376,"qf":0.097,"sf":0.0352,"final":0.0098,"champion":0.0024},"알제리":{"r32":0.6775,"r16":0.2035,"qf":0.0766,"sf":0.0238,"final":0.0056,"champion":0.0007},"요르단":{"r32":0.2311,"r16":0.0358,"qf":0.0075,"sf":0.001,"final":0.0002,"champion":0.0},"포르투갈":{"r32":0.9642,"r16":0.6723,"qf":0.4488,"sf":0.258,"final":0.143,"champion":0.0702},"콜롬비아":{"r32":0.8829,"r16":0.4702,"qf":0.2271,"sf":0.1039,"final":0.0451,"champion":0.0158},"우즈베키스탄":{"r32":0.3749,"r16":0.077,"qf":0.0197,"sf":0.0033,"final":0.0006,"champion":0.0},"DR콩고":{"r32":0.4116,"r16":0.0929,"qf":0.021,"sf":0.0037,"final":0.001,"champion":0.0002},"잉글랜드":{"r32":0.9729,"r16":0.7109,"qf":0.4812,"sf":0.24,"final":0.1411,"champion":0.0735},"크로아티아":{"r32":0.9278,"r16":0.5622,"qf":0.2982,"sf":0.1311,"final":0.0616,"champion":0.0243},"가나":{"r32":0.1449,"r16":0.019,"qf":0.0031,"sf":0.0002,"final":0.0,"champion":0.0},"파나마":{"r32":0.6177,"r16":0.1952,"qf":0.0658,"sf":0.0171,"final":0.0045,"champion":0.0014}},"korea":{"group":"A","groupOpponents":["멕시코","남아프리카공화국","체코"],"strengthScore":0.5155,"advanceToR32Prob":0.797,"groupFinish":{"first":0.2732,"second":0.3365,"third":0.2447,"fourth":0.1456,"thirdAndAdvanced":0.1873},"groupMatches":[{"opponent":"멕시코","win":0.269,"draw":0.2632,"loss":0.4678},{"opponent":"남아프리카공화국","win":0.5516,"draw":0.2442,"loss":0.2042},{"opponent":"체코","win":0.4678,"draw":0.258,"loss":0.2742}],"stageDistribution":{"groupStage":0.203,"r32":0.3875,"r16":0.2353,"qf":0.1259,"sf":0.0355,"runnerUp":0.0101,"champion":0.0027},"mostLikelyOutcome":{"stage":"r32","probability":0.3875,"label":"32강 탈락"}},"darkHorses":{"criterion":"FIFA 랭킹 20위 밖(시드 상위권이 아닌) 팀 중 8강 진출 확률 상위 3팀 — 랭킹 시드 대비 토너먼트 진출 확률이 높은 팀 (한국은 별도 섹션이라 제외)","teams":[{"team":"이란","nameEn":"Iran","group":"G","fifaRank":21,"strengthScore":0.5602,"r32":0.8696,"r16":0.4731,"qf":0.1921},{"team":"튀르키예","nameEn":"Türkiye","group":"D","fifaRank":22,"strengthScore":0.5329,"r32":0.7178,"r16":0.3359,"qf":0.1396},{"team":"에콰도르","nameEn":"Ecuador","group":"E","fifaRank":23,"strengthScore":0.5257,"r32":0.8521,"r16":0.3828,"qf":0.1306}]},"groupSummaries":[{"group":"A","teams":[{"team":"멕시코","first":0.5301,"second":0.2689},{"team":"대한민국","first":0.2732,"second":0.3365},{"team":"체코","first":0.1325,"second":0.2403},{"team":"남아프리카공화국","first":0.0642,"second":0.1543}]},{"group":"B","teams":[{"team":"스위스","first":0.5369,"second":0.2803},{"team":"캐나다","first":0.2738,"second":0.3428},{"team":"카타르","first":0.1249,"second":0.2268},{"team":"보스니아 헤르체고비나","first":0.0644,"second":0.1501}]},{"group":"C","teams":[{"team":"브라질","first":0.5658,"second":0.3314},{"team":"모로코","first":0.3723,"second":0.4528},{"team":"스코틀랜드","first":0.0581,"second":0.1845},{"team":"아이티","first":0.0038,"second":0.0313}]},{"group":"D","teams":[{"team":"미국","first":0.4312,"second":0.2751},{"team":"튀르키예","first":0.2398,"second":0.2783},{"team":"호주","first":0.2196,"second":0.2659},{"team":"파라과이","first":0.1094,"second":0.1807}]},{"group":"E","teams":[{"team":"독일","first":0.617,"second":0.2552},{"team":"에콰도르","first":0.23,"second":0.3983},{"team":"코트디부아르","first":0.1416,"second":0.2958},{"team":"퀴라소","first":0.0114,"second":0.0507}]},{"group":"F","teams":[{"team":"네덜란드","first":0.6116,"second":0.2551},{"team":"일본","first":0.2635,"second":0.3988},{"team":"스웨덴","first":0.0731,"second":0.1938},{"team":"튀니지","first":0.0518,"second":0.1523}]},{"group":"G","teams":[{"team":"벨기에","first":0.5764,"second":0.2794},{"team":"이란","first":0.2543,"second":0.3772},{"team":"이집트","first":0.1608,"second":0.3056},{"team":"뉴질랜드","first":0.0085,"second":0.0378}]},{"group":"H","teams":[{"team":"스페인","first":0.7448,"second":0.2203},{"team":"우루과이","first":0.2245,"second":0.5718},{"team":"사우디아라비아","first":0.0223,"second":0.1297},{"team":"카보베르데","first":0.0084,"second":0.0782}]},{"group":"I","teams":[{"team":"프랑스","first":0.7934,"second":0.169},{"team":"세네갈","first":0.1516,"second":0.5062},{"team":"노르웨이","first":0.0423,"second":0.2237},{"team":"이라크","first":0.0127,"second":0.1011}]},{"group":"J","teams":[{"team":"아르헨티나","first":0.7686,"second":0.1684},{"team":"오스트리아","first":0.1245,"second":0.4033},{"team":"알제리","first":0.0933,"second":0.3321},{"team":"요르단","first":0.0136,"second":0.0962}]},{"group":"K","teams":[{"team":"포르투갈","first":0.626,"second":0.2707},{"team":"콜롬비아","first":0.293,"second":0.4406},{"team":"DR콩고","first":0.0417,"second":0.1545},{"team":"우즈베키스탄","first":0.0393,"second":0.1342}]},{"group":"L","teams":[{"team":"잉글랜드","first":0.5893,"second":0.2981},{"team":"크로아티아","first":0.3294,"second":0.4449},{"team":"파나마","first":0.0722,"second":0.2141},{"team":"가나","first":0.0091,"second":0.0429}]}]};
+
+(function(){
+  "use strict";
+  const $app = document.getElementById("app");
+  const fmtInt = n => n.toLocaleString("ko-KR");
+  const fmtPct = p => {
+    const v = p * 100;
+    if (v === 0) return "0%";
+    if (v >= 1) return v.toFixed(1) + "%";
+    return v.toFixed(2) + "%";
+  };
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]));
+  const h = html => { const t = document.createElement("template"); t.innerHTML = html.trim(); return t.content.firstElementChild; };
+
+  function section(num, title, subtitle){
+    return h(`<section class="card">
+      <div class="sec-head"><span class="sec-num">${num}</span>
+        <div><h2>${title}</h2>${subtitle ? `<p class="sec-sub">${subtitle}</p>` : ""}</div>
+      </div>
+      <div class="sec-body"></div>
+    </section>`);
+  }
+
+  /* ── 헤더 ── */
+  function renderHeader(){
+    const m = DATA.meta;
+    return h(`<header class="hero">
+      <div class="eyebrow">MIDNIGHT LOG · DATA REPORT</div>
+      <h1>2026 북중미 월드컵<br><span class="hl">몬테카를로 시뮬레이션</span></h1>
+      <p class="hero-sub">${fmtInt(m.iterations)}회 몬테카를로 시뮬레이션, 시드 고정 <span class="mono">(seed ${m.seed})</span></p>
+      <div class="chips">
+        <span class="chip">데이터 기준일 <b>${esc(m.generatedOn)}</b></span>
+        <span class="chip">대회당 <b>${fmtInt(m.matchesPerIteration)}경기</b></span>
+        <span class="chip">시뮬 평균 <b>${m.avgGoalsPerMatch}골</b>/경기</span>
+      </div>
+    </header>`);
+  }
+
+  /* ── 1. 우승 확률 TOP 10 ── */
+  function renderChampions(){
+    const top = DATA.championProbs.slice(0, 10);
+    const max = top[0].prob;
+    const sec = section("01", `우승 확률 TOP ${top.length}`, `${fmtInt(DATA.meta.iterations)}번의 가상 대회에서 우승으로 끝난 비율`);
+    const body = sec.querySelector(".sec-body");
+    top.forEach((t, i) => {
+      const w = (t.prob / max * 100).toFixed(1);
+      body.appendChild(h(`<div class="champ-row${i === 0 ? " is-top" : ""}">
+        <div class="champ-line">
+          <span class="rank">${String(i + 1).padStart(2, "0")}</span>
+          <span class="tname">${esc(t.team)}</span>
+          <span class="pct">${fmtPct(t.prob)}</span>
+        </div>
+        <div class="bar"><div class="bar-fill ${i === 0 ? "fill-yellow" : "fill-blue"}" style="--w:${w}%"></div></div>
+      </div>`));
+    });
+    body.appendChild(h(`<p class="foot">바 길이는 1위 팀(${esc(top[0].team)} ${fmtPct(top[0].prob)})을 100%로 둔 상대 비율입니다.</p>`));
+    return sec;
+  }
+
+  /* ── 2. 한국 ── */
+  function renderKorea(){
+    const k = DATA.korea;
+    const me = DATA.teams.find(t => t.group === k.group && !k.groupOpponents.includes(t.name));
+    const sec = section("02", `${esc(me.name)} 시나리오`, `${esc(k.group)}조 · ${k.groupOpponents.map(esc).join(" · ")}와 한 조`);
+    const body = sec.querySelector(".sec-body");
+
+    body.appendChild(h(`<div class="kr-hero">
+      <div>
+        <div class="kr-num">${fmtPct(k.advanceToR32Prob)}</div>
+        <div class="kr-label">32강(조별리그 통과) 진출 확률</div>
+      </div>
+      <div class="kr-meta">
+        <div>전력 점수 <b>${me.strengthScore}</b></div>
+        <div>FIFA 랭킹 <b>${me.fifaRank}위</b> · 랭킹 단독 데이터</div>
+      </div>
+    </div>`));
+
+    body.appendChild(h(`<div class="callout callout-yellow">
+      ${fmtInt(DATA.meta.iterations)}번의 대회에서 가장 자주 나온 결과는 <b>${esc(k.mostLikelyOutcome.label)}</b>이었습니다 (확률 ${fmtPct(k.mostLikelyOutcome.probability)}).
+    </div>`));
+
+    const STAGES = [
+      ["groupStage", "조별리그 탈락"],
+      ["r32", "32강 탈락"],
+      ["r16", "16강 탈락"],
+      ["qf", "8강 탈락"],
+      ["sf", "4강 탈락"],
+      ["runnerUp", "준우승"],
+      ["champion", "우승"]
+    ];
+    const maxStage = Math.max(...STAGES.map(([key]) => k.stageDistribution[key]));
+    const stageWrap = h(`<div class="sub-block"><h3>최종 성적 분포 · 어디까지 가는가</h3></div>`);
+    STAGES.forEach(([key, label]) => {
+      const p = k.stageDistribution[key];
+      const hot = key === k.mostLikelyOutcome.stage;
+      stageWrap.appendChild(h(`<div class="mini-row${hot ? " is-hot" : ""}">
+        <span class="mini-label">${label}</span>
+        <div class="bar bar-sm"><div class="bar-fill ${hot ? "fill-yellow" : "fill-blue"}" style="--w:${(p / maxStage * 100).toFixed(1)}%"></div></div>
+        <span class="mini-pct">${fmtPct(p)}</span>
+      </div>`));
+    });
+    body.appendChild(stageWrap);
+
+    const gf = k.groupFinish;
+    body.appendChild(h(`<div class="sub-block">
+      <h3>조 최종 순위 확률</h3>
+      <div class="chips">
+        <span class="chip">1위 <b>${fmtPct(gf.first)}</b></span>
+        <span class="chip">2위 <b>${fmtPct(gf.second)}</b></span>
+        <span class="chip">3위 <b>${fmtPct(gf.third)}</b></span>
+        <span class="chip">4위 <b>${fmtPct(gf.fourth)}</b></span>
+      </div>
+      <p class="foot">조 3위(${fmtPct(gf.third)})로 마치고도 와일드카드로 32강에 진출한 경우는 전체의 ${fmtPct(gf.thirdAndAdvanced)}입니다.</p>
+    </div>`));
+
+    const mWrap = h(`<div class="sub-block"><h3>조별리그 경기별 승·무·패 확률</h3></div>`);
+    k.groupMatches.forEach(m => {
+      mWrap.appendChild(h(`<div class="match">
+        <div class="match-name">vs ${esc(m.opponent)}</div>
+        <div class="splitbar">
+          <div class="seg seg-win" style="--w:${(m.win * 100).toFixed(2)}%"></div>
+          <div class="seg seg-draw" style="--w:${(m.draw * 100).toFixed(2)}%"></div>
+          <div class="seg seg-loss" style="--w:${(m.loss * 100).toFixed(2)}%"></div>
+        </div>
+        <div class="match-legend">
+          <span><i class="dot dot-win"></i>승 ${fmtPct(m.win)}</span>
+          <span><i class="dot dot-draw"></i>무 ${fmtPct(m.draw)}</span>
+          <span><i class="dot dot-loss"></i>패 ${fmtPct(m.loss)}</span>
+        </div>
+      </div>`));
+    });
+    body.appendChild(mWrap);
+    return sec;
+  }
+
+  /* ── 3. 전력 점수 구성 ── */
+  function renderStrength(){
+    const W = DATA.model.weights;
+    const corr = W.coverageBiasCorrection.value;
+    const detailCount = DATA.teams.filter(t => t.dataCoverage !== "ranking-only").length;
+    const top = [...DATA.teams].sort((a, b) => b.strengthScore - a.strengthScore).slice(0, 12);
+    const gross = t => {
+      const c = t.components;
+      if (t.dataCoverage === "ranking-only") return t.strengthScore;
+      return W.rank.value * c.ranking + W.form.value * c.form + W.value.value * c.marketValue + corr;
+    };
+    const maxGross = Math.max(...top.map(gross));
+    const sec = section("03", "전력 점수, 무엇으로 만들었나", `폼·시장가치·부상은 FIFA 상위 ${detailCount}개국만 조사, 나머지는 랭킹 단독`);
+    const body = sec.querySelector(".sec-body");
+
+    body.appendChild(h(`<div class="formula mono">${esc(DATA.model.strengthFormula)}</div>`));
+    body.appendChild(h(`<div class="legend">
+      <span><i class="dot dot-rank"></i>FIFA 랭킹 ×${W.rank.value}</span>
+      <span><i class="dot dot-form"></i>최근 폼 ×${W.form.value}</span>
+      <span><i class="dot dot-val"></i>시장가치 ×${W.value.value}</span>
+      <span><i class="dot dot-corr"></i>커버리지 보정 +${corr}</span>
+      <span><i class="dot dot-pen"></i>부상 감점</span>
+      <span><i class="dot dot-ronly"></i>랭킹 단독</span>
+    </div>`));
+
+    const COV = {
+      "full": ["상세 데이터", "badge-green"],
+      "detail-value-imputed": ["시장가치 추정치", "badge-yellow"],
+      "ranking-only": ["랭킹 단독", "badge-muted"]
+    };
+    top.forEach(t => {
+      const c = t.components;
+      const g = gross(t);
+      let segs = "";
+      if (t.dataCoverage === "ranking-only") {
+        segs = `<div class="sseg s-ronly" style="--w:100%"></div>`;
+      } else {
+        const pen = c.injuryPenalty || 0;
+        const parts = [
+          ["s-rank", W.rank.value * c.ranking],
+          ["s-form", W.form.value * c.form],
+          ["s-val", W.value.value * c.marketValue],
+          ["s-corr", corr - pen]
+        ];
+        if (pen > 0) parts.push(["s-pen", pen]);
+        segs = parts.map(([cls, v]) => `<div class="sseg ${cls}" style="--w:${(v / g * 100).toFixed(2)}%"></div>`).join("");
+      }
+      const cov = COV[t.dataCoverage] || [t.dataCoverage, "badge-muted"];
+      const penChip = c.injuryPenalty > 0 ? `<span class="chip chip-red">부상 −${c.injuryPenalty}</span>` : "";
+      body.appendChild(h(`<div class="str-row">
+        <div class="str-line">
+          <span class="tname">${esc(t.name)}</span>
+          <span class="badge ${cov[1]}">${esc(cov[0])}</span>
+          ${penChip}
+          <span class="score">${t.strengthScore}</span>
+        </div>
+        <div class="strbar" style="--tw:${(g / maxGross * 100).toFixed(1)}%">${segs}</div>
+      </div>`));
+    });
+    body.appendChild(h(`<p class="foot">전력 점수 상위 ${top.length}팀. 랭킹 단독 팀은 폼·시장가치·부상 데이터가 조사되지 않아 FIFA 랭킹이 점수의 전부입니다. 빨간 빗금은 부상 감점으로 깎인 양이고, 커버리지 보정은 상세 조사 ${detailCount}개국이 데이터 보유만으로 불리해지지 않게 더한 상수입니다.</p>`));
+    return sec;
+  }
+
+  /* ── 4. 다크호스 ── */
+  function renderDarkHorses(){
+    const d = DATA.darkHorses;
+    const sec = section("04", "다크호스", "랭킹 시드 대비 토너먼트 진출 확률이 높은 팀");
+    const body = sec.querySelector(".sec-body");
+    body.appendChild(h(`<div class="callout callout-blue"><b>선정 기준</b> · ${esc(d.criterion)}</div>`));
+    const grid = h(`<div class="dh-grid"></div>`);
+    d.teams.forEach(t => {
+      const rows = [["32강", t.r32], ["16강", t.r16], ["8강", t.qf]]
+        .map(([lab, p]) => `<div class="mini-row">
+          <span class="mini-label">${lab}</span>
+          <div class="bar bar-sm"><div class="bar-fill fill-blue" style="--w:${(p * 100).toFixed(1)}%"></div></div>
+          <span class="mini-pct">${fmtPct(p)}</span>
+        </div>`).join("");
+      grid.appendChild(h(`<div class="dh-card">
+        <div class="dh-name">${esc(t.team)}</div>
+        <div class="dh-meta">${esc(t.group)}조 · FIFA ${t.fifaRank}위 · 전력 ${t.strengthScore}</div>
+        ${rows}
+      </div>`));
+    });
+    body.appendChild(grid);
+    body.appendChild(h(`<p class="foot">각 라운드 진출 확률. 이 바 길이는 절대 확률입니다 (바 전체 = 100%).</p>`));
+    return sec;
+  }
+
+  /* ── 5. 모델 한계 ── */
+  function renderLimitations(){
+    const sec = section("05", "이 모델을 믿으면 안 되는 이유", "한계를 모르면 숫자를 오독하게 됩니다");
+    const body = sec.querySelector(".sec-body");
+    body.appendChild(h(`<div class="callout callout-red">
+      이 페이지의 모든 수치는 누가 우승한다는 단정이 아니라, 시드를 고정한 <b>${fmtInt(DATA.meta.iterations)}회 시뮬레이션에서 각 사건이 나온 빈도, 즉 확률 분포</b>입니다. 모델 가정이 바뀌면 숫자도 바뀝니다.
+    </div>`));
+    const ol = h(`<ol class="limits"></ol>`);
+    DATA.model.limitations.forEach(li => ol.appendChild(h(`<li>${esc(li)}</li>`)));
+    body.appendChild(ol);
+    return sec;
+  }
+
+  function renderFooter(){
+    const m = DATA.meta;
+    return h(`<footer class="pfoot">MIDNIGHT LOG · 데이터 기준일 ${esc(m.generatedOn)} · seed ${m.seed} 고정이라 같은 입력이면 같은 결과가 재현됩니다.<br>본 페이지는 통계 모델 실험이며, 베팅 등 실제 의사결정의 근거로 사용할 수 없습니다.</footer>`);
+  }
+
+  [renderHeader(), renderChampions(), renderKorea(), renderStrength(), renderDarkHorses(), renderLimitations(), renderFooter()]
+    .forEach(node => $app.appendChild(node));
+
+  requestAnimationFrame(() => requestAnimationFrame(() => document.body.classList.add("ready")));
+})();
+</script>
+</body>
+</html>
