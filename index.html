@@ -385,7 +385,7 @@ const DATA = {"meta":{"seed":42,"iterations":10000,"avgGoalsPerMatch":2.69,"gene
 
   /* ── 5. 모델 한계 ── */
   function renderLimitations(){
-    const sec = section("05", "이 모델을 믿으면 안 되는 이유", "한계를 모르면 숫자를 오독하게 됩니다");
+    const sec = section("05", "한계점", "한계를 모르면 숫자를 오독하게 됩니다");
     const body = sec.querySelector(".sec-body");
     body.appendChild(h(`<div class="callout callout-red">
       이 페이지의 모든 수치는 누가 우승한다는 단정이 아니라, 시드를 고정한 <b>${fmtInt(DATA.meta.iterations)}회 시뮬레이션에서 각 사건이 나온 빈도, 즉 확률 분포</b>입니다. 모델 가정이 바뀌면 숫자도 바뀝니다.
